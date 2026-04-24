@@ -1258,7 +1258,7 @@ async function sendResetEmail() {
   if(!email) { showToast(t('enterEmail'),'error'); return; }
   btnLoad('btn-forgot', true);
   const { error } = await b_supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: window.location.href
+    redirectTo: 'https://mahmoudalielbadry.github.io/aboutaleb-portal/'
   });
   btnLoad('btn-forgot', false);
   if(!error) {
