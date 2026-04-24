@@ -1,0 +1,2290 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Abou-Taleb Education | بوابة العملاء</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --red: #CC2222;
+  --red-dark: #991818;
+  --red-deeper: #6B0F0F;
+  --red-light: #FF3333;
+  --white: #FFFFFF;
+  --off-white: #FDF6F6;
+  --light-red: #FFF0F0;
+  --border: #F0DADA;
+  --text: #1A0505;
+  --muted: #7A4040;
+  --success: #1A7A4A;
+  --warn: #B45309;
+  --shadow: 0 2px 16px rgba(180,30,30,0.10);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Tajawal',sans-serif; background:var(--off-white); color:var(--text); direction:rtl; min-height:100vh; }
+
+/* ======= AUTH ======= */
+#auth-screen {
+  min-height:100vh;
+  display:flex; align-items:center; justify-content:center;
+  background: linear-gradient(135deg, var(--red-deeper) 0%, var(--red-dark) 50%, var(--red) 100%);
+  padding:20px;
+}
+.auth-box {
+  background:var(--white);
+  border-radius:24px;
+  padding:40px 36px;
+  width:100%; max-width:420px;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.25);
+}
+.auth-logo {
+  text-align:center; margin-bottom:28px;
+}
+.auth-logo .logo-circle {
+  width:72px; height:72px;
+  background: linear-gradient(135deg, var(--red), var(--red-dark));
+  border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  margin:0 auto 14px;
+  font-size:28px; color:white;
+  box-shadow: 0 8px 24px rgba(180,30,30,0.35);
+}
+.auth-logo h1 { font-size:20px; font-weight:900; color:var(--red-dark); text-transform:uppercase; letter-spacing:1px; }
+.auth-logo p { font-size:12px; color:var(--muted); margin-top:4px; }
+
+.auth-tabs {
+  display:flex; gap:4px;
+  background:var(--off-white);
+  border-radius:12px; padding:4px;
+  margin-bottom:24px;
+}
+.auth-tab {
+  flex:1; padding:10px;
+  text-align:center; font-size:14px; font-weight:700;
+  border-radius:10px; cursor:pointer;
+  color:var(--muted); transition:all 0.2s;
+  border:none; background:transparent; font-family:'Tajawal',sans-serif;
+}
+.auth-tab.active { background:var(--red); color:white; box-shadow:0 4px 12px rgba(180,30,30,0.3); }
+
+.form-group { margin-bottom:16px; }
+.form-group label { display:block; font-size:12px; font-weight:700; color:var(--muted); margin-bottom:6px; letter-spacing:0.5px; }
+.form-group input, .form-group select {
+  width:100%; padding:12px 14px;
+  border:1.5px solid var(--border);
+  border-radius:12px; font-family:'Tajawal',sans-serif; font-size:14px;
+  color:var(--text); background:white;
+  transition:border 0.2s; outline:none;
+}
+.form-group input:focus, .form-group select:focus { border-color:var(--red); }
+
+.btn-primary {
+  width:100%; padding:14px;
+  background: linear-gradient(135deg, var(--red), var(--red-dark));
+  color:white; border:none; border-radius:12px;
+  font-family:'Tajawal',sans-serif; font-size:15px; font-weight:800;
+  cursor:pointer; transition:all 0.2s;
+  box-shadow: 0 4px 16px rgba(180,30,30,0.35);
+  margin-top:8px;
+}
+.btn-primary:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(180,30,30,0.4); }
+.btn-primary:disabled { opacity:0.6; cursor:not-allowed; transform:none; }
+
+.auth-msg { text-align:center; font-size:13px; margin-top:12px; padding:10px; border-radius:10px; }
+.auth-msg.error { background:#FFF0F0; color:var(--red); }
+.auth-msg.success { background:#F0FFF8; color:var(--success); }
+
+/* ======= APP ======= */
+#app-screen { display:none; min-height:100vh; }
+
+/* SIDEBAR */
+.sidebar {
+  position:fixed; top:0; right:0;
+  width:250px; height:100vh;
+  background: linear-gradient(180deg, var(--red-deeper) 0%, var(--red-dark) 100%);
+  display:flex; flex-direction:column;
+  z-index:100; overflow:hidden;
+}
+.sidebar-logo {
+  padding:22px 18px 16px;
+  border-bottom:1px solid rgba(255,255,255,0.12);
+  text-align:center;
+}
+.sidebar-logo .s-logo {
+  width:48px; height:48px;
+  background:rgba(255,255,255,0.15);
+  border-radius:50%; border:2px solid rgba(255,255,255,0.3);
+  display:flex; align-items:center; justify-content:center;
+  font-size:20px; color:white; margin:0 auto 10px;
+}
+.sidebar-logo h2 { font-size:12px; font-weight:900; color:white; text-transform:uppercase; letter-spacing:1px; line-height:1.4; }
+.sidebar-logo p { font-size:10px; color:rgba(255,255,255,0.5); margin-top:2px; }
+
+.sidebar-user {
+  padding:14px 16px;
+  border-bottom:1px solid rgba(255,255,255,0.1);
+  display:flex; align-items:center; gap:10px;
+}
+.user-av {
+  width:38px; height:38px; border-radius:50%;
+  background:rgba(255,255,255,0.18); border:2px solid rgba(255,255,255,0.3);
+  display:flex; align-items:center; justify-content:center;
+  font-size:15px; font-weight:800; color:white; flex-shrink:0;
+}
+.user-av-info .uname { font-size:13px; font-weight:700; color:white; }
+.user-av-info .uid { font-size:10px; color:rgba(255,255,255,0.45); margin-top:2px; }
+
+.sidebar-nav { padding:12px 8px; flex:1; overflow-y:auto; }
+.nav-lbl { font-size:9px; font-weight:700; color:rgba(255,255,255,0.3); letter-spacing:2px; text-transform:uppercase; padding:8px 10px 5px; }
+.nav-item {
+  display:flex; align-items:center; gap:10px;
+  padding:10px 12px; border-radius:10px;
+  cursor:pointer; color:rgba(255,255,255,0.6);
+  font-size:13px; font-weight:500; margin-bottom:1px;
+  transition:all 0.2s; position:relative;
+  border:none; background:transparent; width:100%; text-align:right;
+  font-family:'Tajawal',sans-serif;
+}
+.nav-item:hover { background:rgba(255,255,255,0.1); color:white; }
+.nav-item.active { background:rgba(255,255,255,0.18); color:white; font-weight:700; }
+.nav-item.active::before {
+  content:''; position:absolute; right:0; top:8px; bottom:8px;
+  width:3px; background:white; border-radius:10px 0 0 10px;
+}
+.nav-item i { width:18px; text-align:center; font-size:14px; flex-shrink:0; }
+.nav-badge {
+  margin-right:auto; background:white; color:var(--red-dark);
+  font-size:9px; font-weight:900; padding:2px 7px; border-radius:20px;
+}
+
+.sidebar-footer {
+  padding:12px 16px;
+  border-top:1px solid rgba(255,255,255,0.1);
+}
+.logout-btn {
+  width:100%; padding:10px;
+  background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2);
+  border-radius:10px; color:rgba(255,255,255,0.7);
+  font-family:'Tajawal',sans-serif; font-size:13px; font-weight:600;
+  cursor:pointer; transition:all 0.2s;
+}
+.logout-btn:hover { background:rgba(255,255,255,0.2); color:white; }
+
+/* MAIN */
+.main { margin-right:250px; min-height:100vh; }
+
+/* TOPBAR */
+.topbar {
+  background:white; border-bottom:1px solid var(--border);
+  padding:0 28px; height:60px;
+  display:flex; align-items:center; justify-content:space-between;
+  position:sticky; top:0; z-index:50; box-shadow:0 2px 8px rgba(0,0,0,0.05);
+}
+.topbar-title { font-size:17px; font-weight:800; color:var(--text); }
+.topbar-right { display:flex; align-items:center; gap:10px; }
+.verified-chip {
+  background:rgba(26,122,74,0.1); color:var(--success);
+  border:1px solid rgba(26,122,74,0.2);
+  padding:5px 12px; border-radius:20px; font-size:11px; font-weight:700;
+}
+.admin-chip {
+  background:rgba(180,83,9,0.1); color:var(--warn);
+  border:1px solid rgba(180,83,9,0.2);
+  padding:5px 12px; border-radius:20px; font-size:11px; font-weight:700;
+}
+
+/* PAGES */
+.page { display:none; padding:24px 28px; }
+.page.active { display:block; }
+
+/* CARDS */
+.card {
+  background:white; border-radius:16px;
+  border:1px solid var(--border); box-shadow:var(--shadow);
+  overflow:hidden; margin-bottom:20px;
+}
+.card-header {
+  padding:18px 22px 0;
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:14px;
+}
+.card-title { font-size:15px; font-weight:800; color:var(--text); }
+.card-body { padding:0 22px 22px; }
+
+/* STATS */
+.stats-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:20px; }
+.stat-card {
+  background:white; border-radius:14px; padding:18px;
+  border:1px solid var(--border); box-shadow:var(--shadow);
+  transition:transform 0.2s;
+}
+.stat-card:hover { transform:translateY(-3px); }
+.stat-icon { width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:16px; margin-bottom:12px; }
+.stat-val { font-size:26px; font-weight:900; color:var(--text); line-height:1; }
+.stat-lbl { font-size:11px; color:var(--muted); margin-top:4px; font-weight:500; }
+
+/* BANNER */
+.banner {
+  background: linear-gradient(135deg, var(--red-deeper), var(--red-dark));
+  border-radius:16px; padding:24px 28px;
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:20px; overflow:hidden; position:relative;
+}
+.banner::after {
+  content:'🎓'; position:absolute; left:20px; top:50%; transform:translateY(-50%);
+  font-size:64px; opacity:0.08;
+}
+.banner h2 { font-size:20px; font-weight:900; color:white; margin-bottom:6px; }
+.banner p { font-size:12px; color:rgba(255,255,255,0.65); max-width:360px; line-height:1.6; }
+.banner-btn {
+  background:white; color:var(--red-dark);
+  border:none; padding:11px 22px; border-radius:10px;
+  font-family:'Tajawal',sans-serif; font-size:13px; font-weight:800;
+  cursor:pointer; white-space:nowrap; transition:all 0.2s; flex-shrink:0;
+}
+.banner-btn:hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(0,0,0,0.15); }
+
+/* ALERT */
+.alert {
+  padding:12px 16px; border-radius:12px; margin-bottom:16px;
+  display:flex; align-items:center; gap:12px; font-size:13px;
+}
+.alert-warn { background:rgba(180,83,9,0.08); border:1px solid rgba(180,83,9,0.2); color:var(--warn); }
+.alert-info { background:rgba(26,122,74,0.08); border:1px solid rgba(26,122,74,0.2); color:var(--success); }
+
+/* REQUEST ITEMS */
+.req-item {
+  display:flex; align-items:center; gap:14px;
+  padding:14px 0; border-bottom:1px solid var(--border);
+  cursor:pointer; transition:padding 0.15s;
+}
+.req-item:last-child { border-bottom:none; }
+.req-item:hover { padding-right:4px; }
+.req-icon { width:40px; height:40px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
+.req-info { flex:1; }
+.req-name { font-size:13px; font-weight:700; color:var(--text); margin-bottom:3px; }
+.req-date { font-size:11px; color:var(--muted); }
+.progress-row { display:flex; justify-content:space-between; font-size:10px; color:var(--muted); margin-top:5px; }
+.progress-track { height:4px; background:var(--border); border-radius:10px; overflow:hidden; margin-top:3px; }
+.progress-fill { height:100%; border-radius:10px; background:linear-gradient(90deg, var(--red), var(--red-light)); transition:width 0.6s; }
+.progress-fill.green { background:linear-gradient(90deg, var(--success), #2ECC71); }
+
+.status-badge {
+  font-size:10px; font-weight:700; padding:4px 10px; border-radius:20px; white-space:nowrap;
+}
+.s-pending { background:rgba(180,83,9,0.1); color:var(--warn); }
+.s-progress { background:rgba(100,100,200,0.1); color:#3333AA; }
+.s-review { background:rgba(180,30,30,0.1); color:var(--red); }
+.s-done { background:rgba(26,122,74,0.1); color:var(--success); }
+.s-cancelled { background:#f0f0f0; color:#888; }
+
+/* QUICK ACTIONS */
+.quick-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:20px; }
+.quick-btn {
+  background:white; border:1px solid var(--border); border-radius:14px;
+  padding:16px 10px; display:flex; flex-direction:column; align-items:center; gap:8px;
+  cursor:pointer; transition:all 0.2s; box-shadow:var(--shadow);
+  font-family:'Tajawal',sans-serif;
+}
+.quick-btn:hover { border-color:var(--red); transform:translateY(-3px); box-shadow:0 8px 24px rgba(180,30,30,0.12); }
+.quick-btn .qicon { font-size:22px; width:44px; height:44px; border-radius:12px; display:flex; align-items:center; justify-content:center; }
+.quick-btn span { font-size:11px; font-weight:700; color:var(--text); text-align:center; }
+
+/* FORM MODAL */
+.modal-overlay {
+  display:none; position:fixed; inset:0;
+  background:rgba(0,0,0,0.5); z-index:200;
+  align-items:center; justify-content:center; padding:20px;
+}
+.modal-overlay.open { display:flex; }
+.modal {
+  background:white; border-radius:20px; padding:28px;
+  width:100%; max-width:480px; max-height:90vh; overflow-y:auto;
+  box-shadow:0 24px 64px rgba(0,0,0,0.2);
+}
+.modal h3 { font-size:17px; font-weight:900; color:var(--text); margin-bottom:20px; }
+.modal-footer { display:flex; gap:10px; margin-top:20px; }
+.btn-cancel {
+  flex:1; padding:12px; border:1.5px solid var(--border); border-radius:10px;
+  background:white; font-family:'Tajawal',sans-serif; font-size:14px; font-weight:700;
+  cursor:pointer; color:var(--muted);
+}
+.btn-submit {
+  flex:2; padding:12px;
+  background:linear-gradient(135deg, var(--red), var(--red-dark));
+  color:white; border:none; border-radius:10px;
+  font-family:'Tajawal',sans-serif; font-size:14px; font-weight:800;
+  cursor:pointer; transition:all 0.2s;
+}
+.btn-submit:hover { transform:translateY(-1px); }
+
+/* DOCS GRID */
+.docs-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.doc-item {
+  background:var(--off-white); border-radius:12px; padding:14px;
+  display:flex; align-items:center; gap:10px;
+  border:1px solid var(--border); cursor:pointer; transition:all 0.2s;
+}
+.doc-item:hover { border-color:var(--red); background:var(--light-red); }
+.doc-ico { width:36px; height:36px; border-radius:8px; background:white; display:flex; align-items:center; justify-content:center; font-size:18px; border:1px solid var(--border); flex-shrink:0; }
+.doc-info { flex:1; min-width:0; }
+.doc-name { font-size:12px; font-weight:700; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.doc-meta { font-size:10px; color:var(--muted); margin-top:2px; }
+.doc-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+.dot-valid { background:var(--success); }
+.dot-expiring { background:var(--warn); }
+.dot-expired { background:var(--red); }
+
+/* INVOICES */
+.invoice-item {
+  display:flex; align-items:center; gap:14px;
+  padding:14px 0; border-bottom:1px solid var(--border);
+}
+.invoice-item:last-child { border-bottom:none; }
+.inv-info { flex:1; }
+.inv-title { font-size:13px; font-weight:700; color:var(--text); }
+.inv-date { font-size:11px; color:var(--muted); margin-top:2px; }
+.inv-amount { font-size:15px; font-weight:900; color:var(--red-dark); }
+
+/* PROFILE */
+.profile-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.pfield { background:var(--off-white); border-radius:10px; padding:12px 14px; }
+.pfield label { font-size:10px; font-weight:700; color:var(--muted); letter-spacing:0.5px; text-transform:uppercase; display:block; margin-bottom:4px; }
+.pfield span { font-size:13px; font-weight:600; color:var(--text); }
+
+/* ADMIN TABLE */
+.data-table { width:100%; border-collapse:collapse; }
+.data-table th { background:var(--off-white); padding:10px 14px; text-align:right; font-size:11px; font-weight:700; color:var(--muted); letter-spacing:0.5px; border-bottom:1px solid var(--border); }
+.data-table td { padding:12px 14px; border-bottom:1px solid var(--border); font-size:13px; }
+.data-table tr:last-child td { border-bottom:none; }
+.data-table tr:hover td { background:var(--off-white); }
+
+.btn-sm {
+  padding:5px 12px; border-radius:8px; font-size:11px; font-weight:700;
+  cursor:pointer; border:none; font-family:'Tajawal',sans-serif; transition:all 0.2s;
+}
+.btn-red { background:var(--light-red); color:var(--red); }
+.btn-green { background:rgba(26,122,74,0.1); color:var(--success); }
+.btn-blue { background:rgba(30,80,180,0.1); color:#1E50B4; }
+
+/* LOADER */
+.loader { text-align:center; padding:40px; color:var(--muted); font-size:14px; }
+.spin { display:inline-block; width:24px; height:24px; border:3px solid var(--border); border-top-color:var(--red); border-radius:50%; animation:spin 0.7s linear infinite; margin-bottom:10px; }
+@keyframes spin { to { transform:rotate(360deg); } }
+
+/* EMPTY */
+.empty-state { text-align:center; padding:40px 20px; color:var(--muted); }
+.empty-state .e-icon { font-size:40px; margin-bottom:12px; opacity:0.4; }
+.empty-state p { font-size:14px; }
+
+/* TOAST */
+.toast {
+  position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(100px);
+  background:var(--text); color:white; padding:12px 24px; border-radius:12px;
+  font-size:13px; font-weight:600; z-index:500; transition:transform 0.3s;
+  box-shadow:0 8px 24px rgba(0,0,0,0.2);
+}
+.toast.show { transform:translateX(-50%) translateY(0); }
+.toast.success { background:var(--success); }
+.toast.error { background:var(--red); }
+
+/* LANG SWITCHER */
+.lang-switcher { position:relative; }
+.lang-btn {
+  display:flex; align-items:center; gap:6px;
+  padding:6px 12px; border-radius:10px;
+  border:1.5px solid var(--border); background:white;
+  font-family:'Tajawal',sans-serif; font-size:13px; font-weight:700;
+  color:var(--text); cursor:pointer; transition:all 0.2s;
+}
+.lang-btn:hover { border-color:var(--red); color:var(--red); }
+.lang-btn .globe { font-size:15px; }
+.lang-dropdown {
+  display:none; position:absolute; top:calc(100% + 8px); left:0;
+  background:white; border:1.5px solid var(--border); border-radius:12px;
+  box-shadow:0 8px 24px rgba(0,0,0,0.12); overflow:hidden; min-width:150px; z-index:200;
+}
+.lang-dropdown.open { display:block; }
+.lang-option {
+  display:flex; align-items:center; gap:10px;
+  padding:10px 14px; cursor:pointer; font-size:13px; font-weight:600;
+  color:var(--text); transition:background 0.15s;
+  border:none; background:transparent; width:100%;
+  font-family:'Tajawal',sans-serif; text-align:right;
+}
+.lang-option:hover { background:var(--off-white); }
+.lang-option.active { color:var(--red); background:var(--light-red); }
+.lang-option .flag { font-size:18px; }
+
+/* PHONE INPUT */
+.phone-wrap { display:flex; flex-direction:row-reverse; gap:0; }
+.phone-wrap .country-select {
+  flex-shrink:0; width:140px;
+  padding:12px 8px; border:1.5px solid var(--border);
+  border-radius:0 12px 12px 0; border-right:none;
+  font-family:'Tajawal',sans-serif; font-size:15px;
+  color:var(--text); background:var(--off-white);
+  cursor:pointer; outline:none; transition:border 0.2s;
+  appearance:none; -webkit-appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%237A4040'/%3E%3C/svg%3E");
+  background-repeat:no-repeat; background-position:left 8px center;
+  padding-left:24px;
+}
+.phone-wrap .country-select:focus { border-color:var(--red); }
+.phone-wrap .phone-number {
+  flex:1; padding:12px 14px;
+  border:1.5px solid var(--border); border-left:none;
+  border-radius:12px 0 0 12px;
+  font-family:'Tajawal',sans-serif; font-size:14px;
+  direction:ltr; text-align:left;
+  color:var(--text); background:white; outline:none; transition:border 0.2s;
+}
+.phone-wrap .phone-number:focus { border-color:var(--red); }
+.phone-wrap:focus-within .country-select,
+.phone-wrap:focus-within .phone-number { border-color:var(--red); }
+
+/* FILE INPUT */
+.file-input-wrap { position:relative; }
+.file-input-wrap input[type=file] { position:absolute; inset:0; opacity:0; cursor:pointer; }
+.file-label {
+  display:flex; align-items:center; gap:10px; padding:12px 14px;
+  border:1.5px dashed var(--border); border-radius:12px;
+  color:var(--muted); font-size:13px; cursor:pointer; transition:border 0.2s;
+}
+.file-label:hover { border-color:var(--red); color:var(--red); }
+
+/* HAMBURGER */
+.hamburger {
+  display:none; flex-direction:column; gap:5px;
+  cursor:pointer; padding:8px; border:none; background:transparent;
+}
+.hamburger span {
+  display:block; width:22px; height:2px;
+  background:var(--text); border-radius:2px; transition:all 0.3s;
+}
+.sidebar-overlay {
+  display:none; position:fixed; inset:0;
+  background:rgba(0,0,0,0.5); z-index:99;
+}
+.sidebar-overlay.open { display:block; }
+
+@media(max-width:768px) {
+  .sidebar { transform:translateX(100%); transition:transform 0.3s; }
+  .sidebar.open { transform:translateX(0); }
+  .main { margin-right:0; }
+  .hamburger { display:flex; }
+  .stats-grid { grid-template-columns:1fr 1fr; }
+  .quick-grid { grid-template-columns:1fr 1fr; }
+  .docs-grid { grid-template-columns:1fr; }
+  .page { padding:16px; }
+  .topbar { padding:0 16px; }
+  .banner { flex-direction:column; gap:14px; text-align:center; }
+  .banner-btn { width:100%; }
+}
+
+/* LOADING BUTTON STATE */
+.btn-loading { position:relative; pointer-events:none; opacity:0.75; }
+.btn-loading::after {
+  content:''; position:absolute; top:50%; left:50%;
+  transform:translate(-50%,-50%);
+  width:18px; height:18px;
+  border:2px solid rgba(255,255,255,0.4);
+  border-top-color:white; border-radius:50%;
+  animation:spin 0.7s linear infinite;
+}
+
+/* DOC EXPIRY ALERT */
+.expiry-alerts { margin-bottom:16px; }
+.expiry-alert {
+  display:flex; align-items:center; gap:10px;
+  padding:10px 14px; border-radius:10px; margin-bottom:8px;
+  font-size:12px; font-weight:600;
+}
+.expiry-alert.danger { background:rgba(180,30,30,0.08); border:1px solid rgba(180,30,30,0.2); color:var(--red); }
+.expiry-alert.warn { background:rgba(180,83,9,0.08); border:1px solid rgba(180,83,9,0.2); color:var(--warn); }
+
+/* PAGINATION */
+.pagination {
+  display:flex; align-items:center; justify-content:center; gap:6px;
+  padding:16px 0 4px;
+}
+.page-btn {
+  width:32px; height:32px; border-radius:8px;
+  border:1.5px solid var(--border); background:white;
+  font-family:'Tajawal',sans-serif; font-size:13px; font-weight:700;
+  cursor:pointer; color:var(--text); transition:all 0.2s;
+  display:flex; align-items:center; justify-content:center;
+}
+.page-btn:hover { border-color:var(--red); color:var(--red); }
+.page-btn.active { background:var(--red); color:white; border-color:var(--red); }
+.page-btn:disabled { opacity:0.4; cursor:not-allowed; }
+.page-info { font-size:12px; color:var(--muted); margin:0 8px; }
+
+/* NOTIFICATION BELL */
+.notif-bell {
+  position:relative; cursor:pointer;
+  width:36px; height:36px; border-radius:10px;
+  border:1.5px solid var(--border); background:white;
+  display:flex; align-items:center; justify-content:center;
+  font-size:16px; transition:all 0.2s;
+}
+.notif-bell:hover { border-color:var(--red); }
+.notif-count {
+  position:absolute; top:-6px; left:-6px;
+  background:var(--red); color:white;
+  font-size:9px; font-weight:900;
+  padding:2px 5px; border-radius:20px;
+  min-width:16px; text-align:center;
+  border:2px solid white;
+}
+.notif-count:empty, .notif-count[data-count="0"] { display:none; }
+
+/* NOTIF DROPDOWN */
+.notif-dropdown {
+  display:none; position:absolute; top:calc(100% + 8px);
+  left:0; width:300px; max-height:360px; overflow-y:auto;
+  background:white; border:1.5px solid var(--border);
+  border-radius:16px; box-shadow:0 12px 40px rgba(0,0,0,0.12);
+  z-index:300;
+}
+.notif-dropdown.open { display:block; }
+.notif-dropdown-header {
+  padding:14px 16px 10px;
+  border-bottom:1px solid var(--border);
+  display:flex; align-items:center; justify-content:space-between;
+}
+.notif-dropdown-header h4 { font-size:14px; font-weight:800; }
+.notif-mark-all { font-size:11px; color:var(--red); cursor:pointer; font-weight:600; }
+.notif-item {
+  padding:12px 16px; border-bottom:1px solid var(--border);
+  cursor:pointer; transition:background 0.15s;
+}
+.notif-item:hover { background:var(--off-white); }
+.notif-item:last-child { border-bottom:none; }
+.notif-item.unread { background:rgba(180,30,30,0.03); }
+.notif-item .n-title { font-size:13px; font-weight:700; color:var(--text); margin-bottom:3px; }
+.notif-item .n-msg { font-size:11px; color:var(--muted); line-height:1.4; }
+.notif-item .n-time { font-size:10px; color:var(--muted); margin-top:4px; }
+.notif-item .n-dot { width:7px; height:7px; border-radius:50%; background:var(--red); flex-shrink:0; margin-top:4px; }
+.notif-empty { text-align:center; padding:28px; color:var(--muted); font-size:13px; }
+
+/* REALTIME INDICATOR */
+.realtime-dot {
+  display:inline-block; width:7px; height:7px;
+  border-radius:50%; background:var(--success);
+  margin-left:4px; animation:pulse 2s infinite;
+}
+@keyframes pulse {
+  0%,100% { opacity:1; } 50% { opacity:0.3; }
+}
+
+/* FORGOT PASSWORD LINK */
+.forgot-link {
+  text-align:center; margin-top:10px;
+  font-size:12px; color:var(--red);
+  cursor:pointer; font-weight:600;
+}
+.forgot-link:hover { text-decoration:underline; }
+
+/* PASSWORD STRENGTH */
+.pass-strength { margin-top:6px; height:3px; border-radius:10px; background:var(--border); overflow:hidden; }
+.pass-strength-bar { height:100%; border-radius:10px; transition:all 0.3s; }
+.pass-match-msg { font-size:11px; margin-top:4px; font-weight:600; }
+</style>
+</head>
+<body>
+
+<!-- ======= AUTH ======= -->
+<div id="auth-screen">
+  <div class="auth-box">
+    <div class="auth-logo">
+      <div class="logo-circle">🎓</div>
+      <h1>Abou-Taleb Education</h1>
+      <p id="auth-portal-sub">بوابة العملاء الرسمية</p>
+    </div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="login-tab-btn" onclick="switchTab('login')">تسجيل الدخول</button>
+      <button class="auth-tab" id="register-tab-btn" onclick="switchTab('register')">حساب جديد</button>
+    </div>
+
+    <!-- Login -->
+    <div id="login-form">
+      <div class="form-group">
+        <label id="lbl-login-email">البريد الإلكتروني</label>
+        <input type="email" id="login-email" placeholder="أدخل بريدك الإلكتروني">
+      </div>
+      <div class="form-group">
+        <label id="lbl-login-pass">كلمة المرور</label>
+        <input type="password" id="login-pass" placeholder="أدخل كلمة المرور">
+      </div>
+      <button class="btn-primary" id="btn-login" onclick="doLogin()">تسجيل الدخول</button>
+    </div>
+
+    <!-- Register -->
+    <div id="register-form" style="display:none">
+      <div class="form-group">
+        <label id="lbl-reg-name">الاسم الكامل</label>
+        <input type="text" id="reg-name" placeholder="أحمد محمد">
+      </div>
+      <div class="form-group">
+        <label id="lbl-reg-email">البريد الإلكتروني</label>
+        <input type="email" id="reg-email" placeholder="example@email.com">
+      </div>
+      <div class="form-group">
+        <label id="lbl-reg-phone">رقم الهاتف</label>
+        <div class="phone-wrap">
+          <select class="country-select" id="reg-phone-code">
+            <option value="+90">🇹🇷 +90</option>
+            <option value="+20">🇪🇬 +20</option>
+            <option value="+966">🇸🇦 +966</option>
+            <option value="+971">🇦🇪 +971</option>
+            <option value="+974">🇶🇦 +974</option>
+            <option value="+965">🇰🇼 +965</option>
+            <option value="+973">🇧🇭 +973</option>
+            <option value="+968">🇴🇲 +968</option>
+            <option value="+962">🇯🇴 +962</option>
+            <option value="+961">🇱🇧 +961</option>
+            <option value="+963">🇸🇾 +963</option>
+            <option value="+964">🇮🇶 +964</option>
+            <option value="+967">🇾🇪 +967</option>
+            <option value="+218">🇱🇾 +218</option>
+            <option value="+216">🇹🇳 +216</option>
+            <option value="+213">🇩🇿 +213</option>
+            <option value="+212">🇲🇦 +212</option>
+            <option value="+249">🇸🇩 +249</option>
+            <option value="+252">🇸🇴 +252</option>
+            <option value="+98">🇮🇷 +98</option>
+            <option value="+92">🇵🇰 +92</option>
+            <option value="+1">🇺🇸 +1</option>
+            <option value="+44">🇬🇧 +44</option>
+            <option value="+49">🇩🇪 +49</option>
+            <option value="+33">🇫🇷 +33</option>
+            <option value="+39">🇮🇹 +39</option>
+            <option value="+31">🇳🇱 +31</option>
+            <option value="+46">🇸🇪 +46</option>
+            <option value="+47">🇳🇴 +47</option>
+            <option value="+45">🇩🇰 +45</option>
+            <option value="+358">🇫🇮 +358</option>
+            <option value="+7">🇷🇺 +7</option>
+            <option value="+86">🇨🇳 +86</option>
+            <option value="+81">🇯🇵 +81</option>
+            <option value="+82">🇰🇷 +82</option>
+          </select>
+          <input type="tel" class="phone-number" id="reg-phone" placeholder="501 000 00 00">
+        </div>
+      </div>
+      <div class="form-group">
+        <label id="lbl-reg-nation">الجنسية</label>
+        <input type="text" id="reg-nation" placeholder="مصري / سوري / ...">
+      </div>
+      <div class="form-group">
+        <label id="lbl-reg-pass">كلمة المرور</label>
+        <input type="password" id="reg-pass" placeholder="8 أحرف على الأقل" oninput="checkPassStrength(this.value)">
+        <div class="pass-strength"><div class="pass-strength-bar" id="pass-strength-bar"></div></div>
+      </div>
+      <div class="form-group">
+        <label id="lbl-reg-pass-confirm">تأكيد كلمة المرور</label>
+        <input type="password" id="reg-pass-confirm" placeholder="أعد كتابة كلمة المرور" oninput="checkPassMatch()">
+        <div class="pass-match-msg" id="pass-match-msg"></div>
+      </div>
+      <button class="btn-primary" id="btn-register" onclick="doRegister()">إنشاء الحساب</button>
+    </div>
+
+    <div id="auth-msg"></div>
+    <div class="forgot-link" onclick="openForgotPass()" id="forgot-link-txt">🔑 نسيت كلمة المرور؟</div>
+
+    <!-- Lang switcher bottom corner -->
+    <div style="display:flex;justify-content:flex-end;margin-top:16px;padding-top:12px;border-top:1px solid var(--border);">
+      <div class="lang-switcher" style="position:relative;">
+        <button class="lang-btn" onclick="toggleLangDropdown()" style="padding:5px 10px;font-size:12px;color:var(--muted);border-color:var(--border);">
+          <span style="font-size:13px;">🌐</span>
+          <span id="lang-label-auth">العربية</span>
+          <span style="font-size:9px;opacity:0.5">▾</span>
+        </button>
+        <div class="lang-dropdown" id="lang-dropdown-auth" style="bottom:calc(100% + 8px);top:auto;left:0;">
+          <button class="lang-option active" onclick="setLang('ar')"><span class="flag">🇸🇦</span> العربية</button>
+          <button class="lang-option" onclick="setLang('en')"><span class="flag">🇬🇧</span> English</button>
+          <button class="lang-option" onclick="setLang('tr')"><span class="flag">🇹🇷</span> Türkçe</button>
+          <button class="lang-option" onclick="setLang('fr')"><span class="flag">🇫🇷</span> Français</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FORGOT PASSWORD MODAL -->
+<div class="modal-overlay" id="forgot-modal">
+  <div class="modal">
+    <h3>🔑 استعادة كلمة المرور</h3>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.6">أدخل بريدك الإلكتروني وسنرسل لك رابط إعادة تعيين كلمة المرور</p>
+    <div class="form-group">
+      <label>البريد الإلكتروني</label>
+      <input type="email" id="forgot-email" placeholder="example@email.com">
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('forgot-modal')">إلغاء</button>
+      <button class="btn-submit" id="btn-forgot" onclick="sendResetEmail()">إرسال الرابط</button>
+    </div>
+  </div>
+</div>
+
+<!-- ======= APP ======= -->
+<div id="app-screen">
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar-main">
+    <div class="sidebar-logo">
+      <div class="s-logo">🎓</div>
+      <h2>Abou-Taleb<br>Education</h2>
+      <p>بوابة العملاء</p>
+    </div>
+    <div class="sidebar-user">
+      <div class="user-av" id="sidebar-av">م</div>
+      <div class="user-av-info">
+        <div class="uname" id="sidebar-name">جاري التحميل...</div>
+        <div class="uid" id="sidebar-id">—</div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-lbl" id="nav-lbl-main">الرئيسية</div>
+      <button class="nav-item active" onclick="goPage('dashboard')"><i class="fas fa-home"></i> <span id="nav-dashboard">لوحة التحكم</span></button>
+      <button class="nav-item" onclick="goPage('requests')"><i class="fas fa-clipboard-list"></i> <span id="nav-requests">طلباتي</span> <span class="nav-badge" id="req-count">0</span></button>
+      <button class="nav-item" onclick="goPage('documents')"><i class="fas fa-folder-open"></i> <span id="nav-documents">وثائقي</span></button>
+      <button class="nav-item" onclick="goPage('invoices')"><i class="fas fa-file-invoice-dollar"></i> <span id="nav-invoices">الفواتير</span></button>
+      <div class="nav-lbl" id="nav-lbl-account">الحساب</div>
+      <button class="nav-item" onclick="goPage('profile')"><i class="fas fa-user"></i> <span id="nav-profile">ملفي الشخصي</span></button>
+      <div id="admin-nav" style="display:none">
+        <div class="nav-lbl" id="nav-lbl-admin">الإدارة</div>
+        <button class="nav-item" onclick="goPage('admin-clients')"><i class="fas fa-users"></i> <span id="nav-admin-clients">العملاء</span></button>
+        <button class="nav-item" onclick="goPage('admin-requests')"><i class="fas fa-tasks"></i> <span id="nav-admin-requests">إدارة الطلبات</span></button>
+        <button class="nav-item" onclick="goPage('admin-invoices')"><i class="fas fa-dollar-sign"></i> <span id="nav-admin-invoices">الفواتير</span></button>
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="logout-btn" onclick="doLogout()"><i class="fas fa-sign-out-alt"></i> <span id="nav-logout">تسجيل الخروج</span></button>
+    </div>
+  </aside>
+
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+  <!-- MAIN -->
+  <main class="main">
+    <header class="topbar">
+      <div style="display:flex;align-items:center;gap:12px">
+        <button class="hamburger" id="hamburger-btn" onclick="toggleSidebar()">
+          <span></span><span></span><span></span>
+        </button>
+        <div class="topbar-title" id="topbar-title">لوحة التحكم</div>
+      </div>
+      <div class="topbar-right">
+        <span class="verified-chip" id="role-chip">✓ عميل موثّق</span>
+        <div style="position:relative">
+          <div class="notif-bell" id="notif-bell" onclick="toggleNotifDropdown()">
+            🔔
+            <span class="notif-count" id="notif-count"></span>
+          </div>
+          <div class="notif-dropdown" id="notif-dropdown">
+            <div class="notif-dropdown-header">
+              <h4>🔔 الإشعارات <span class="realtime-dot" title="Realtime"></span></h4>
+              <span class="notif-mark-all" onclick="markAllRead()">تحديد الكل كمقروء</span>
+            </div>
+            <div id="notif-list"><div class="notif-empty">لا توجد إشعارات</div></div>
+          </div>
+        </div>
+        <div class="lang-switcher">
+          <button class="lang-btn" onclick="toggleLangDropdown()">
+            <span class="globe">🌐</span>
+            <span id="lang-label">العربية</span>
+            <span style="font-size:10px;opacity:0.5">▾</span>
+          </button>
+          <div class="lang-dropdown" id="lang-dropdown">
+            <button class="lang-option active" onclick="setLang('ar')"><span class="flag">🇸🇦</span> العربية</button>
+            <button class="lang-option" onclick="setLang('en')"><span class="flag">🇬🇧</span> English</button>
+            <button class="lang-option" onclick="setLang('tr')"><span class="flag">🇹🇷</span> Türkçe</button>
+            <button class="lang-option" onclick="setLang('fr')"><span class="flag">🇫🇷</span> Français</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div class="expiry-alerts" id="expiry-alerts"></div>
+      <div class="banner">
+        <div>
+          <h2 id="welcome-msg">مرحباً 👋</h2>
+          <p id="banner-sub">تابع طلباتك ووثائقك وفواتيرك من مكان واحد</p>
+        </div>
+        <button class="banner-btn" onclick="openModal('req-modal')"><span id="banner-btn-txt">+ تقديم طلب جديد</span></button>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:rgba(180,30,30,0.08)">📋</div>
+          <div class="stat-val" id="stat-total">0</div>
+          <div class="stat-lbl" id="stat-lbl-total">إجمالي الطلبات</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:rgba(100,100,200,0.08)">⏳</div>
+          <div class="stat-val" id="stat-active">0</div>
+          <div class="stat-lbl" id="stat-lbl-active">طلبات جارية</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:rgba(26,122,74,0.08)">✅</div>
+          <div class="stat-val" id="stat-done">0</div>
+          <div class="stat-lbl" id="stat-lbl-done">مكتملة</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:rgba(180,83,9,0.08)">💳</div>
+          <div class="stat-val" id="stat-unpaid">0</div>
+          <div class="stat-lbl" id="stat-lbl-unpaid">فواتير غير مسددة</div>
+        </div>
+      </div>
+      <div class="quick-grid">
+        <div class="quick-btn" onclick="openReqModal('residence')">
+          <div class="qicon" style="background:rgba(180,30,30,0.08)">🪪</div>
+          <span id="quick-renew">تجديد الإقامة</span>
+        </div>
+        <div class="quick-btn" onclick="openReqModal('university')">
+          <div class="qicon" style="background:rgba(201,168,76,0.12)">🎓</div>
+          <span id="quick-uni">القبول الجامعي</span>
+        </div>
+        <div class="quick-btn" onclick="openReqModal('visa')">
+          <div class="qicon" style="background:rgba(26,122,74,0.1)">✈️</div>
+          <span id="quick-visa">خدمات التأشيرة</span>
+        </div>
+        <div class="quick-btn" onclick="goPage('documents')">
+          <div class="qicon" style="background:rgba(100,100,200,0.1)">📤</div>
+          <span id="quick-upload">رفع وثيقة</span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title" id="latest-reqs-title">آخر الطلبات</div>
+          <span style="font-size:12px;color:var(--red);cursor:pointer;font-weight:600" id="view-all-btn" onclick="goPage('requests')">عرض الكل ←</span>
+        </div>
+        <div class="card-body" id="dash-requests">
+          <div class="loader"><div class="spin"></div><br>جاري التحميل...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- REQUESTS -->
+    <div class="page" id="page-requests">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+        <h2 style="font-size:18px;font-weight:900">طلباتي</h2>
+        <button class="btn-primary" style="width:auto;padding:10px 20px" onclick="openModal('req-modal')">+ طلب جديد</button>
+      </div>
+      <div class="card">
+        <div class="card-body" id="all-requests" style="padding-top:16px">
+          <div class="loader"><div class="spin"></div><br>جاري التحميل...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DOCUMENTS -->
+    <div class="page" id="page-documents">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+        <h2 style="font-size:18px;font-weight:900">وثائقي</h2>
+        <button class="btn-primary" style="width:auto;padding:10px 20px" onclick="openModal('doc-modal')">+ رفع وثيقة</button>
+      </div>
+      <div class="card">
+        <div class="card-body" style="padding-top:16px">
+          <div class="docs-grid" id="docs-grid">
+            <div class="loader" style="grid-column:1/-1"><div class="spin"></div><br>جاري التحميل...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- INVOICES -->
+    <div class="page" id="page-invoices">
+      <h2 style="font-size:18px;font-weight:900;margin-bottom:20px">الفواتير والمدفوعات</h2>
+      <div class="card">
+        <div class="card-body" style="padding-top:16px" id="invoices-list">
+          <div class="loader"><div class="spin"></div><br>جاري التحميل...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROFILE -->
+    <div class="page" id="page-profile">
+      <h2 style="font-size:18px;font-weight:900;margin-bottom:20px">ملفي الشخصي</h2>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">البيانات الشخصية</div>
+          <button class="btn-sm btn-red" onclick="openModal('profile-modal')">✏️ تعديل</button>
+        </div>
+        <div class="card-body">
+          <div class="profile-grid" id="profile-grid">
+            <div class="loader" style="grid-column:1/-1"><div class="spin"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ADMIN: CLIENTS -->
+    <div class="page" id="page-admin-clients">
+      <h2 style="font-size:18px;font-weight:900;margin-bottom:20px">إدارة العملاء</h2>
+      <div class="card">
+        <div class="card-body" style="padding-top:16px;overflow-x:auto">
+          <table class="data-table" id="admin-clients-table">
+            <thead><tr><th>الاسم</th><th>البريد</th><th>الهاتف</th><th>الجنسية</th><th>تاريخ التسجيل</th></tr></thead>
+            <tbody id="admin-clients-body"><tr><td colspan="5" class="loader">جاري التحميل...</td></tr></tbody>
+          </table>
+          <div class="pagination" id="clients-pagination"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ADMIN: REQUESTS -->
+    <div class="page" id="page-admin-requests">
+      <h2 style="font-size:18px;font-weight:900;margin-bottom:20px">إدارة الطلبات</h2>
+      <div class="card">
+        <div class="card-body" style="padding-top:16px;overflow-x:auto">
+          <table class="data-table">
+            <thead><tr><th>العميل</th><th>نوع الطلب</th><th>العنوان</th><th>الحالة</th><th>التقدم</th><th>إجراء</th></tr></thead>
+            <tbody id="admin-req-body"><tr><td colspan="6" class="loader">جاري التحميل...</td></tr></tbody>
+          </table>
+          <div class="pagination" id="requests-pagination"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ADMIN: INVOICES -->
+    <div class="page" id="page-admin-invoices">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+        <h2 style="font-size:18px;font-weight:900">إدارة الفواتير</h2>
+        <button class="btn-primary" style="width:auto;padding:10px 20px" onclick="openModal('admin-inv-modal')">+ فاتورة جديدة</button>
+      </div>
+      <div class="card">
+        <div class="card-body" style="padding-top:16px;overflow-x:auto">
+          <table class="data-table">
+            <thead><tr><th>العميل</th><th>العنوان</th><th>المبلغ</th><th>الحالة</th><th>تاريخ الاستحقاق</th><th>إجراء</th></tr></thead>
+            <tbody id="admin-inv-body"><tr><td colspan="6" class="loader">جاري التحميل...</td></tr></tbody>
+          </table>
+          <div class="pagination" id="invoices-pagination"></div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ======= MODALS ======= -->
+
+<!-- New Request Modal -->
+<div class="modal-overlay" id="req-modal">
+  <div class="modal">
+    <h3 id="modal-req-title">📋 تقديم طلب جديد</h3>
+    <div class="form-group">
+      <label id="lbl-req-type">نوع الخدمة</label>
+      <select id="req-type">
+        <option value="residence">🪪 تجديد الإقامة</option>
+        <option value="university">🎓 القبول الجامعي</option>
+        <option value="visa">✈️ خدمات التأشيرة</option>
+        <option value="other">📌 خدمة أخرى</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label id="lbl-req-title">عنوان الطلب</label>
+      <input type="text" id="req-title" placeholder="مثال: تجديد إقامة سنوية">
+    </div>
+    <div class="form-group">
+      <label id="lbl-req-notes">ملاحظات إضافية</label>
+      <input type="text" id="req-notes" placeholder="أي تفاصيل مهمة...">
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" id="cancel-req" onclick="closeModal('req-modal')">إلغاء</button>
+      <button class="btn-submit" id="submit-req" onclick="submitRequest()">تقديم الطلب</button>
+    </div>
+  </div>
+</div>
+
+<!-- Upload Document Modal -->
+<div class="modal-overlay" id="doc-modal">
+  <div class="modal">
+    <h3 id="modal-doc-title">📤 رفع وثيقة جديدة</h3>
+    <div class="form-group">
+      <label id="lbl-doc-name">اسم الوثيقة</label>
+      <input type="text" id="doc-name" placeholder="مثال: جواز السفر">
+    </div>
+    <div class="form-group">
+      <label id="lbl-doc-type">نوع الوثيقة</label>
+      <select id="doc-type">
+        <option value="passport">🛂 جواز السفر</option>
+        <option value="residence">🪪 الإقامة</option>
+        <option value="degree">🎓 الشهادة الجامعية</option>
+        <option value="contract">📄 عقد العمل</option>
+        <option value="other">📎 أخرى</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label id="lbl-doc-expiry">تاريخ الانتهاء (اختياري)</label>
+      <input type="date" id="doc-expiry">
+    </div>
+    <div class="form-group">
+      <label id="lbl-doc-file">رفع الملف</label>
+      <div class="file-input-wrap">
+        <div class="file-label">📎 <span id="file-label-txt">اختر ملف PDF أو صورة</span></div>
+        <input type="file" id="doc-file" accept=".pdf,.jpg,.jpeg,.png" onchange="updateFileLabel(this)">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" id="cancel-doc" onclick="closeModal('doc-modal')">إلغاء</button>
+      <button class="btn-submit" id="submit-doc" onclick="uploadDocument()">رفع الوثيقة</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Profile Modal -->
+<div class="modal-overlay" id="profile-modal">
+  <div class="modal">
+    <h3 id="modal-profile-title">✏️ تعديل البيانات الشخصية</h3>
+    <div class="form-group"><label id="lbl-edit-name">الاسم الكامل</label><input type="text" id="edit-name"></div>
+    <div class="form-group"><label id="lbl-edit-phone">رقم الهاتف</label>
+      <div class="phone-wrap">
+        <select class="country-select" id="edit-phone-code">
+          <option value="+90">🇹🇷 +90</option>
+          <option value="+20">🇪🇬 +20</option>
+          <option value="+966">🇸🇦 +966</option>
+          <option value="+971">🇦🇪 +971</option>
+          <option value="+974">🇶🇦 +974</option>
+          <option value="+965">🇰🇼 +965</option>
+          <option value="+973">🇧🇭 +973</option>
+          <option value="+968">🇴🇲 +968</option>
+          <option value="+962">🇯🇴 +962</option>
+          <option value="+961">🇱🇧 +961</option>
+          <option value="+963">🇸🇾 +963</option>
+          <option value="+964">🇮🇶 +964</option>
+          <option value="+967">🇾🇪 +967</option>
+          <option value="+218">🇱🇾 +218</option>
+          <option value="+216">🇹🇳 +216</option>
+          <option value="+213">🇩🇿 +213</option>
+          <option value="+212">🇲🇦 +212</option>
+          <option value="+249">🇸🇩 +249</option>
+          <option value="+252">🇸🇴 +252</option>
+          <option value="+98">🇮🇷 +98</option>
+          <option value="+92">🇵🇰 +92</option>
+          <option value="+1">🇺🇸 +1</option>
+          <option value="+44">🇬🇧 +44</option>
+          <option value="+49">🇩🇪 +49</option>
+          <option value="+33">🇫🇷 +33</option>
+          <option value="+39">🇮🇹 +39</option>
+          <option value="+31">🇳🇱 +31</option>
+          <option value="+46">🇸🇪 +46</option>
+          <option value="+47">🇳🇴 +47</option>
+          <option value="+45">🇩🇰 +45</option>
+          <option value="+358">🇫🇮 +358</option>
+          <option value="+7">🇷🇺 +7</option>
+          <option value="+86">🇨🇳 +86</option>
+          <option value="+81">🇯🇵 +81</option>
+          <option value="+82">🇰🇷 +82</option>
+        </select>
+        <input type="tel" class="phone-number" id="edit-phone" placeholder="501 000 00 00">
+      </div>
+    </div>
+    <div class="form-group"><label id="lbl-edit-nation">الجنسية</label><input type="text" id="edit-nation"></div>
+    <div class="form-group"><label id="lbl-edit-passport">رقم الجواز</label><input type="text" id="edit-passport"></div>
+    <div class="form-group"><label id="lbl-edit-expiry">تاريخ انتهاء الإقامة</label><input type="date" id="edit-expiry"></div>
+    <div class="modal-footer">
+      <button class="btn-cancel" id="cancel-profile" onclick="closeModal('profile-modal')">إلغاء</button>
+      <button class="btn-submit" id="submit-profile" onclick="saveProfile()">حفظ التغييرات</button>
+    </div>
+  </div>
+</div>
+
+<!-- Admin: Update Request Status -->
+<div class="modal-overlay" id="update-req-modal">
+  <div class="modal">
+    <h3>🔄 تحديث حالة الطلب</h3>
+    <input type="hidden" id="edit-req-id">
+    <div class="form-group">
+      <label>الحالة</label>
+      <select id="edit-req-status">
+        <option value="pending">⏳ في الانتظار</option>
+        <option value="in_progress">🔄 قيد المعالجة</option>
+        <option value="review">👁 مراجعة</option>
+        <option value="done">✅ مكتمل</option>
+        <option value="cancelled">❌ ملغي</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>نسبة التقدم (%)</label>
+      <input type="number" id="edit-req-progress" min="0" max="100">
+    </div>
+    <div class="form-group">
+      <label>ملاحظات للعميل</label>
+      <input type="text" id="edit-req-notes">
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('update-req-modal')">إلغاء</button>
+      <button class="btn-submit" id="submit-update-req" onclick="updateRequest()">حفظ</button>
+    </div>
+  </div>
+</div>
+
+<!-- Admin: New Invoice -->
+<div class="modal-overlay" id="admin-inv-modal">
+  <div class="modal">
+    <h3>💳 إنشاء فاتورة جديدة</h3>
+    <div class="form-group">
+      <label>معرّف العميل (ID)</label>
+      <input type="text" id="inv-client-id" placeholder="UUID العميل">
+    </div>
+    <div class="form-group">
+      <label>عنوان الفاتورة</label>
+      <input type="text" id="inv-title" placeholder="مثال: رسوم تجديد الإقامة">
+    </div>
+    <div class="form-group">
+      <label>المبلغ</label>
+      <input type="number" id="inv-amount" placeholder="0.00">
+    </div>
+    <div class="form-group">
+      <label>العملة</label>
+      <select id="inv-currency">
+        <option value="USD">دولار أمريكي (USD)</option>
+        <option value="TRY">ليرة تركية (TRY)</option>
+        <option value="SAR">ريال سعودي (SAR)</option>
+        <option value="EUR">يورو (EUR)</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>تاريخ الاستحقاق</label>
+      <input type="date" id="inv-due">
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('admin-inv-modal')">إلغاء</button>
+      <button class="btn-submit" id="submit-admin-inv" onclick="createInvoice()">إنشاء الفاتورة</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ===================== CONFIG & SUPABASE INIT =====================
+const SUPABASE_URL = 'https://vwyinhopqupawnkzobee.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ3eWluaG9wcXVwYXdua3pvYmVlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1MDU2NDUsImV4cCI6MjA5MjA4MTY0NX0.kcHqSubThDqi3IjUATPQnZHvzNod7SQQyp3Po0X1txw';
+const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const b_supabase = _supabase; // alias used throughout the app
+
+// ===================== CENTRAL STATE =====================
+const STATE = {
+  user: null,
+  profile: null,
+  requests: [],
+  documents: [],
+  invoices: [],
+  notifications: [],
+  // Pagination
+  clientsPage: 1, requestsPage: 1, invoicesPage: 1,
+  PAGE_SIZE: 10,
+  // Realtime channel
+  realtimeChannel: null,
+};
+
+// Getters
+const getUser = () => STATE.user;
+const getProfile = () => STATE.profile;
+
+// Setters — auto-refresh relevant UI
+function setState(key, value) {
+  STATE[key] = value;
+}
+
+// ===================== API HELPER (wraps Supabase JS) =====================
+async function dbApi(endpoint, method='GET', body=null) {
+  // Fallback raw fetch (for storage upload etc.)
+  const tok = (await b_supabase.auth.getSession()).data.session?.access_token;
+  const headers = { 'Content-Type':'application/json', 'apikey': SUPABASE_KEY };
+  if(tok) headers['Authorization'] = 'Bearer ' + tok;
+  const opts = { method, headers };
+  if(body) opts.body = JSON.stringify(body);
+  const res = await fetch(SUPABASE_URL + '/rest/v1/' + endpoint, opts);
+  if(res.status === 401) { await doLogout(); return { ok:false, data:null }; }
+  const text = await res.text();
+  try { return { ok: res.ok, status: res.status, data: JSON.parse(text) }; }
+  catch { return { ok: res.ok, status: res.status, data: text }; }
+}
+
+function getToken() {
+  // For storage uploads
+  return b_supabase.auth.getSession().then(r => r.data.session?.access_token);
+}
+
+// ===================== BUTTON LOADING HELPER =====================
+function btnLoad(id, loading) {
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.disabled = loading;
+  if(loading) el.classList.add('btn-loading');
+  else el.classList.remove('btn-loading');
+}
+
+// ===================== PASSWORD HELPERS =====================
+function checkPassStrength(val) {
+  const bar = document.getElementById('pass-strength-bar');
+  if(!bar) return;
+  let score = 0;
+  if(val.length >= 6) score++;
+  if(val.length >= 10) score++;
+  if(/[A-Z]/.test(val)) score++;
+  if(/[0-9]/.test(val)) score++;
+  if(/[^A-Za-z0-9]/.test(val)) score++;
+  const colors = ['#eee','#CC2222','#E07020','#E8C020','#2D7A5F','#1A5A3A'];
+  const widths = ['0%','20%','40%','60%','80%','100%'];
+  bar.style.width = widths[score];
+  bar.style.background = colors[score];
+}
+
+function checkPassMatch() {
+  const p1 = document.getElementById('reg-pass')?.value;
+  const p2 = document.getElementById('reg-pass-confirm')?.value;
+  const msg = document.getElementById('pass-match-msg');
+  if(!msg || !p2) return;
+  if(p1 === p2) { msg.textContent = '✓ ' + t('passMatch'); msg.style.color = 'var(--success)'; }
+  else { msg.textContent = '✗ ' + t('passNoMatch'); msg.style.color = 'var(--red)'; }
+}
+
+// ===================== FORGOT PASSWORD =====================
+function openForgotPass() {
+  openModal('forgot-modal');
+}
+
+async function sendResetEmail() {
+  const email = document.getElementById('forgot-email').value.trim();
+  if(!email) { showToast(t('enterEmail'),'error'); return; }
+  btnLoad('btn-forgot', true);
+  const { error } = await b_supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: window.location.href
+  });
+  btnLoad('btn-forgot', false);
+  if(!error) {
+    closeModal('forgot-modal');
+    showToast(t('resetSent'),'success');
+  } else {
+    showToast(error.message || t('error'),'error');
+  }
+}
+
+// ===================== AUTH =====================
+function switchTab(tab) {
+  document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('login-form').style.display = tab==='login' ? 'block' : 'none';
+  document.getElementById('register-form').style.display = tab==='register' ? 'block' : 'none';
+  document.getElementById('auth-msg').innerHTML = '';
+}
+
+async function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  if(!email||!pass) { showAuthMsg(t('fillFields'),'error'); return; }
+
+  btnLoad('btn-login', true);
+  const { data, error } = await b_supabase.auth.signInWithPassword({ email, password: pass });
+  btnLoad('btn-login', false);
+
+  if(data?.user) {
+    STATE.user = data.user;
+    await loadApp();
+    applyLang();
+  } else {
+    showAuthMsg(error?.message || t('error'),'error');
+  }
+}
+
+async function doRegister() {
+  const name = document.getElementById('reg-name').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const phoneCode = document.getElementById('reg-phone-code').value;
+  const phoneNum = document.getElementById('reg-phone').value.trim();
+  const phone = phoneNum ? phoneCode + ' ' + phoneNum : '';
+  const nation = document.getElementById('reg-nation').value.trim();
+  const pass = document.getElementById('reg-pass').value;
+  const passConfirm = document.getElementById('reg-pass-confirm').value;
+
+  if(!name||!email||!pass) { showAuthMsg(t('fillFields'),'error'); return; }
+  if(pass.length < 6) { showAuthMsg(t('passShort'),'error'); return; }
+  if(pass !== passConfirm) { showAuthMsg(t('passNoMatch'),'error'); return; }
+
+  btnLoad('btn-register', true);
+  const { data, error } = await b_supabase.auth.signUp({
+    email, password: pass,
+    options: { data: { full_name: name } }
+  });
+  btnLoad('btn-register', false);
+
+  if(data?.user) {
+    if(data.session) {
+      // Update profile
+      await b_supabase.from('profiles').update({ full_name: name, phone, nationality: nation, email })
+        .eq('id', data.user.id);
+      STATE.user = data.user;
+      await loadApp();
+      applyLang();
+    } else {
+      showAuthMsg(t('checkEmail'),'success');
+    }
+  } else {
+    showAuthMsg(error?.message || t('error'),'error');
+  }
+}
+
+function showAuthMsg(msg, type) {
+  const el = document.getElementById('auth-msg');
+  el.innerHTML = msg; el.className = 'auth-msg ' + type;
+}
+
+async function forceLogout() {
+  await b_supabase.auth.signOut();
+  STATE.user = null; STATE.profile = null;
+  if(STATE.realtimeChannel) {
+    b_supabase.removeChannel(STATE.realtimeChannel);
+    STATE.realtimeChannel = null;
+  }
+  document.getElementById('app-screen').style.display = 'none';
+  document.getElementById('auth-screen').style.display = 'flex';
+  showAuthMsg(t('sessionExpired'),'error');
+}
+
+async function doLogout() {
+  await b_supabase.auth.signOut();
+  STATE.user = null; STATE.profile = null;
+  if(STATE.realtimeChannel) {
+    b_supabase.removeChannel(STATE.realtimeChannel);
+    STATE.realtimeChannel = null;
+  }
+  document.getElementById('app-screen').style.display = 'none';
+  document.getElementById('auth-screen').style.display = 'flex';
+}
+
+// ===================== SIDEBAR MOBILE =====================
+function toggleSidebar() {
+  document.getElementById('sidebar-main').classList.toggle('open');
+  document.getElementById('sidebar-overlay').classList.toggle('open');
+}
+
+// ===================== REALTIME =====================
+function initRealtime() {
+  if(STATE.realtimeChannel) b_supabase.removeChannel(STATE.realtimeChannel);
+
+  STATE.realtimeChannel = b_supabase
+    .channel('portal-changes')
+    // Listen for new notifications for this user
+    .on('postgres_changes', {
+      event: 'INSERT', schema: 'public', table: 'notifications',
+      filter: 'client_id=eq.' + STATE.user.id
+    }, payload => {
+      STATE.notifications.unshift(payload.new);
+      renderNotifications();
+      showToast('🔔 ' + payload.new.title, 'success');
+    })
+    // Listen for request updates (admin changed status)
+    .on('postgres_changes', {
+      event: 'UPDATE', schema: 'public', table: 'requests',
+      filter: 'client_id=eq.' + STATE.user.id
+    }, payload => {
+      const idx = STATE.requests.findIndex(r => r.id === payload.new.id);
+      if(idx !== -1) STATE.requests[idx] = payload.new;
+      else STATE.requests.unshift(payload.new);
+      // Refresh current page if on requests/dashboard
+      const activePage = document.querySelector('.page.active')?.id;
+      if(activePage === 'page-dashboard') loadDashboard();
+      if(activePage === 'page-requests') renderRequestsList();
+      showToast('📋 ' + t('reqUpdated'));
+    })
+    .subscribe();
+}
+
+// ===================== NOTIFICATIONS =====================
+function toggleNotifDropdown() {
+  document.getElementById('notif-dropdown').classList.toggle('open');
+}
+document.addEventListener('click', e => {
+  if(!e.target.closest('#notif-bell') && !e.target.closest('#notif-dropdown')) {
+    document.getElementById('notif-dropdown')?.classList.remove('open');
+  }
+});
+
+async function loadNotifications() {
+  const { data } = await b_supabase.from('notifications')
+    .select('*').eq('client_id', STATE.user.id)
+    .order('created_at', { ascending: false }).limit(20);
+  STATE.notifications = data || [];
+  renderNotifications();
+}
+
+function renderNotifications() {
+  const list = document.getElementById('notif-list');
+  const count = document.getElementById('notif-count');
+  const unread = STATE.notifications.filter(n => !n.is_read);
+  count.textContent = unread.length > 0 ? unread.length : '';
+
+  if(!STATE.notifications.length) {
+    list.innerHTML = `<div class="notif-empty">🔔 ${t('noNotifs')}</div>`;
+    return;
+  }
+
+  list.innerHTML = STATE.notifications.map(n => {
+    const time = new Date(n.created_at).toLocaleDateString(currentLang === 'ar' ? 'ar-SA' : 'en-US');
+    return `
+      <div class="notif-item ${n.is_read ? '' : 'unread'}" onclick="readNotif('${n.id}')">
+        <div style="display:flex;align-items:flex-start;gap:8px">
+          <div style="flex:1">
+            <div class="n-title">${n.title}</div>
+            ${n.message ? `<div class="n-msg">${n.message}</div>` : ''}
+            <div class="n-time">${time}</div>
+          </div>
+          ${!n.is_read ? '<div class="n-dot"></div>' : ''}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+async function readNotif(id) {
+  await b_supabase.from('notifications').update({ is_read: true }).eq('id', id);
+  const n = STATE.notifications.find(n => n.id === id);
+  if(n) n.is_read = true;
+  renderNotifications();
+}
+
+async function markAllRead() {
+  await b_supabase.from('notifications')
+    .update({ is_read: true }).eq('client_id', STATE.user.id).eq('is_read', false);
+  STATE.notifications.forEach(n => n.is_read = true);
+  renderNotifications();
+}
+
+// ===================== APP LOAD =====================
+async function loadApp() {
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('app-screen').style.display = 'block';
+
+  const { data: profiles } = await b_supabase.from('profiles')
+    .select('*').eq('id', STATE.user.id).limit(1);
+
+  if(profiles?.length) {
+    STATE.profile = profiles[0];
+  } else {
+    STATE.profile = { id: STATE.user.id, email: STATE.user.email, full_name: STATE.user.email, role: 'client' };
+  }
+
+  const name = STATE.profile.full_name || STATE.profile.email;
+  document.getElementById('sidebar-name').textContent = name;
+  document.getElementById('sidebar-av').textContent = name.charAt(0).toUpperCase();
+  document.getElementById('sidebar-id').textContent = '# ' + STATE.user.id.slice(0,8).toUpperCase();
+  document.getElementById('welcome-msg').textContent = t('welcome').replace('{name}', name.split(' ')[0]);
+
+  if(STATE.profile.role === 'admin') {
+    document.getElementById('admin-nav').style.display = 'block';
+    document.getElementById('role-chip').textContent = t('adminRole');
+    document.getElementById('role-chip').className = 'admin-chip';
+  }
+
+  // Init Realtime & Notifications
+  initRealtime();
+  loadNotifications();
+  loadDashboard();
+}
+
+// ===================== DASHBOARD =====================
+async function loadDashboard() {
+  const uid = STATE.user.id;
+
+  const [reqRes, invRes, docRes] = await Promise.all([
+    b_supabase.from('requests').select('*').eq('client_id', uid).order('created_at', { ascending: false }),
+    b_supabase.from('invoices').select('*').eq('client_id', uid),
+    b_supabase.from('documents').select('*').eq('client_id', uid)
+  ]);
+
+  STATE.requests = reqRes.data || [];
+  STATE.invoices = invRes.data || [];
+  STATE.documents = docRes.data || [];
+
+  document.getElementById('stat-total').textContent = STATE.requests.length;
+  document.getElementById('stat-active').textContent = STATE.requests.filter(r=>['pending','in_progress','review'].includes(r.status)).length;
+  document.getElementById('stat-done').textContent = STATE.requests.filter(r=>r.status==='done').length;
+  document.getElementById('stat-unpaid').textContent = STATE.invoices.filter(i=>i.status==='unpaid').length;
+  document.getElementById('req-count').textContent = STATE.requests.filter(r=>r.status!=='done').length;
+
+  // Expiry alerts
+  const today = new Date();
+  const soon = new Date(); soon.setDate(today.getDate() + 60);
+  const expiringDocs = STATE.documents.filter(d => d.expiry_date && new Date(d.expiry_date) <= soon);
+  const alertsEl = document.getElementById('expiry-alerts');
+  if(alertsEl) {
+    alertsEl.innerHTML = expiringDocs.map(d => {
+      const days = Math.ceil((new Date(d.expiry_date) - today) / (1000*60*60*24));
+      const cls = days <= 30 ? 'danger' : 'warn';
+      const msg = days <= 0
+        ? `⛔ ${d.name} — ${t('expired')}`
+        : `⚠️ ${d.name} — ${t('expiresIn').replace('{days}', days)}`;
+      return `<div class="expiry-alert ${cls}">${msg}</div>`;
+    }).join('');
+  }
+
+  const recent = STATE.requests.slice(0,4);
+  document.getElementById('dash-requests').innerHTML = recent.length
+    ? recent.map(r => reqItemHTML(r)).join('')
+    : `<div class="empty-state"><div class="e-icon">📋</div><p>${t('noRequests')}</p></div>`;
+}
+
+function reqItemHTML(r) {
+  const icons = { residence:'🪪', university:'🎓', visa:'✈️', other:'📌' };
+  const colors = { residence:'rgba(180,30,30,0.08)', university:'rgba(201,168,76,0.12)', visa:'rgba(26,122,74,0.1)', other:'rgba(100,100,200,0.1)' };
+  const statusMap = {
+    pending:    ['s-pending',  t('pending')],
+    in_progress:['s-progress', t('inProgress')],
+    review:     ['s-review',   t('review')],
+    done:       ['s-done',     t('done')],
+    cancelled:  ['s-cancelled',t('cancelled')]
+  };
+  const [sc, sl] = statusMap[r.status] || ['s-pending', r.status];
+  const prog = r.progress || 0;
+  const locale = { ar:'ar-SA', tr:'tr-TR', fr:'fr-FR', en:'en-US' }[currentLang] || 'en-US';
+  const date = new Date(r.created_at).toLocaleDateString(locale);
+  return `
+    <div class="req-item">
+      <div class="req-icon" style="background:${colors[r.type]||colors.other}">${icons[r.type]||'📌'}</div>
+      <div class="req-info">
+        <div class="req-name">${r.title}</div>
+        <div class="req-date">${t('submitted')}: ${date}${r.notes ? ' · ' + r.notes : ''}</div>
+        <div class="progress-row"><span>${t('progressLabel')}</span><span>${prog}%</span></div>
+        <div class="progress-track"><div class="progress-fill${r.status==='done'?' green':''}" style="width:${prog}%"></div></div>
+      </div>
+      <span class="status-badge ${sc}">${sl}</span>
+    </div>`;
+}
+
+// ===================== REQUESTS PAGE =====================
+async function loadRequests() {
+  document.getElementById('all-requests').innerHTML = '<div class="loader"><div class="spin"></div></div>';
+  const { data } = await b_supabase.from('requests')
+    .select('*').eq('client_id', STATE.user.id).order('created_at', { ascending: false });
+  STATE.requests = data || [];
+  renderRequestsList();
+}
+
+function renderRequestsList() {
+  document.getElementById('all-requests').innerHTML = STATE.requests.length
+    ? STATE.requests.map(r => reqItemHTML(r)).join('')
+    : `<div class="empty-state"><div class="e-icon">📋</div><p>${t('noRequests')}</p></div>`;
+}
+
+async function submitRequest() {
+  const type = document.getElementById('req-type').value;
+  const title = document.getElementById('req-title').value.trim();
+  const notes = document.getElementById('req-notes').value.trim();
+  if(!title) { showToast(t('enterTitle'),'error'); return; }
+
+  btnLoad('submit-req', true);
+  const { error } = await b_supabase.from('requests').insert({
+    client_id: STATE.user.id, type, title, notes, status:'pending', progress:0
+  });
+  btnLoad('submit-req', false);
+
+  if(!error) {
+    closeModal('req-modal');
+    showToast(t('reqSuccess'),'success');
+    document.getElementById('req-title').value = '';
+    document.getElementById('req-notes').value = '';
+    loadDashboard(); loadRequests();
+  } else showToast(t('error'),'error');
+}
+
+function openReqModal(type) {
+  document.getElementById('req-type').value = type;
+  openModal('req-modal');
+}
+
+// ===================== DOCUMENTS =====================
+async function loadDocuments() {
+  document.getElementById('docs-grid').innerHTML = '<div class="loader" style="grid-column:1/-1"><div class="spin"></div></div>';
+  const { data } = await b_supabase.from('documents')
+    .select('*').eq('client_id', STATE.user.id).order('created_at', { ascending: false });
+  STATE.documents = data || [];
+  renderDocuments();
+}
+
+function renderDocuments() {
+  const icons = { passport:'🛂', residence:'🪪', degree:'🎓', contract:'📄', other:'📎' };
+  const locale = { ar:'ar-SA', tr:'tr-TR', fr:'fr-FR', en:'en-US' }[currentLang] || 'en-US';
+
+  document.getElementById('docs-grid').innerHTML = STATE.documents.length
+    ? STATE.documents.map(d => {
+        let status = d.status || 'valid';
+        if(d.expiry_date) {
+          const days = Math.ceil((new Date(d.expiry_date) - new Date()) / (1000*60*60*24));
+          if(days <= 0) status = 'expired';
+          else if(days <= 60) status = 'expiring';
+        }
+        const metaTxt = d.expiry_date
+          ? t('expiry') + ': ' + new Date(d.expiry_date).toLocaleDateString(locale)
+          : t('noExpiry');
+        const dotClass = { valid:'dot-valid', expiring:'dot-expiring', expired:'dot-expired' }[status]||'dot-valid';
+        return `
+          <div class="doc-item">
+            <div class="doc-ico">${icons[d.type]||'📎'}</div>
+            <div class="doc-info">
+              <div class="doc-name">${d.name}</div>
+              <div class="doc-meta">${metaTxt}</div>
+              ${d.file_url ? `<div class="doc-meta" style="margin-top:2px"><a href="${d.file_url}" target="_blank" style="color:var(--red);font-size:10px;font-weight:700">📎 ${t('viewFile')}</a></div>` : ''}
+            </div>
+            <div class="doc-dot ${dotClass}"></div>
+          </div>`;
+      }).join('')
+    : `<div class="empty-state" style="grid-column:1/-1"><div class="e-icon">📁</div><p>${t('noDocs')}</p></div>`;
+}
+
+function updateFileLabel(input) {
+  const txt = input.files[0] ? input.files[0].name : t('chooseFile');
+  document.getElementById('file-label-txt').textContent = txt;
+}
+
+async function uploadDocument() {
+  const name = document.getElementById('doc-name').value.trim();
+  const type = document.getElementById('doc-type').value;
+  const expiry = document.getElementById('doc-expiry').value;
+  const fileInput = document.getElementById('doc-file');
+  const file = fileInput.files[0];
+  if(!name) { showToast(t('enterDocName'),'error'); return; }
+
+  btnLoad('submit-doc', true);
+  let file_url = null;
+
+  if(file) {
+    const ext = file.name.split('.').pop();
+    const path = STATE.user.id + '/' + Date.now() + '.' + ext;
+    const { error: upErr } = await b_supabase.storage.from('documents').upload(path, file, { upsert: true });
+    if(!upErr) {
+      const { data: urlData } = b_supabase.storage.from('documents').getPublicUrl(path);
+      file_url = urlData.publicUrl;
+    }
+  }
+
+  let status = 'valid';
+  if(expiry) {
+    const days = Math.ceil((new Date(expiry) - new Date()) / (1000*60*60*24));
+    if(days <= 0) status = 'expired';
+    else if(days <= 60) status = 'expiring';
+  }
+
+  const { error } = await b_supabase.from('documents').insert({
+    client_id: STATE.user.id, name, type, expiry_date: expiry || null, file_url, status
+  });
+  btnLoad('submit-doc', false);
+
+  if(!error) {
+    closeModal('doc-modal');
+    showToast(t('docSuccess'),'success');
+    document.getElementById('doc-name').value = '';
+    document.getElementById('doc-expiry').value = '';
+    fileInput.value = '';
+    document.getElementById('file-label-txt').textContent = t('chooseFile');
+    loadDocuments();
+  } else showToast(t('error'),'error');
+}
+
+// ===================== INVOICES =====================
+async function loadInvoices() {
+  document.getElementById('invoices-list').innerHTML = '<div class="loader"><div class="spin"></div></div>';
+  const { data } = await b_supabase.from('invoices')
+    .select('*').eq('client_id', STATE.user.id).order('created_at', { ascending: false });
+  STATE.invoices = data || [];
+  renderInvoices();
+}
+
+function renderInvoices() {
+  const locale = { ar:'ar-SA', tr:'tr-TR', fr:'fr-FR', en:'en-US' }[currentLang] || 'en-US';
+  document.getElementById('invoices-list').innerHTML = STATE.invoices.length
+    ? STATE.invoices.map(i => {
+        const sMap = { unpaid:['s-pending',t('unpaidStatus')], paid:['s-done',t('paidStatus')], overdue:['s-review',t('overdueStatus')] };
+        const [sc,sl] = sMap[i.status]||['s-pending','—'];
+        return `
+          <div class="invoice-item">
+            <div style="width:36px;height:36px;border-radius:10px;background:rgba(180,30,30,0.08);display:flex;align-items:center;justify-content:center;font-size:18px">💳</div>
+            <div class="inv-info">
+              <div class="inv-title">${i.title}</div>
+              <div class="inv-date">${i.due_date ? t('dueDate')+': '+new Date(i.due_date).toLocaleDateString(locale) : ''}</div>
+            </div>
+            <div class="inv-amount">${i.amount} ${i.currency}</div>
+            <span class="status-badge ${sc}">${sl}</span>
+          </div>`;
+      }).join('')
+    : `<div class="empty-state"><div class="e-icon">💳</div><p>${t('noInvoices')}</p></div>`;
+}
+
+// ===================== PROFILE =====================
+async function loadProfile() {
+  if(!STATE.profile) return;
+  const p = STATE.profile;
+  const locale = { ar:'ar-SA', tr:'tr-TR', fr:'fr-FR', en:'en-US' }[currentLang] || 'en-US';
+  document.getElementById('profile-grid').innerHTML = `
+    <div class="pfield"><label>${t('fullName')}</label><span>${p.full_name||'—'}</span></div>
+    <div class="pfield"><label>${t('emailLabel')}</label><span>${p.email||'—'}</span></div>
+    <div class="pfield"><label>${t('phoneLabel')}</label><span>${p.phone||'—'}</span></div>
+    <div class="pfield"><label>${t('nationality')}</label><span>${p.nationality||'—'}</span></div>
+    <div class="pfield"><label>${t('passport')}</label><span>${p.passport_number||'—'}</span></div>
+    <div class="pfield"><label>${t('residenceExpiry')}</label><span style="color:${p.residence_expiry?'var(--warn)':'inherit'}">${p.residence_expiry ? new Date(p.residence_expiry).toLocaleDateString(locale) : '—'}</span></div>
+    <div class="pfield" style="grid-column:1/-1"><label>${t('roleLabel')}</label><span>${p.role==='admin'?'⚡ '+t('adminRole'):'👤 '+t('clientRole')}</span></div>
+  `;
+  document.getElementById('edit-name').value = p.full_name||'';
+  const savedPhone = p.phone||'';
+  const codeMatch = savedPhone.match(/^(\+\d{1,4})\s*(.*)/);
+  if(codeMatch) {
+    const sel = document.getElementById('edit-phone-code');
+    const opt = Array.from(sel.options).find(o => o.value === codeMatch[1]);
+    if(opt) sel.value = codeMatch[1];
+    document.getElementById('edit-phone').value = codeMatch[2];
+  } else document.getElementById('edit-phone').value = savedPhone;
+  document.getElementById('edit-nation').value = p.nationality||'';
+  document.getElementById('edit-passport').value = p.passport_number||'';
+  document.getElementById('edit-expiry').value = p.residence_expiry||'';
+}
+
+async function saveProfile() {
+  const editPhoneCode = document.getElementById('edit-phone-code').value;
+  const editPhoneNum = document.getElementById('edit-phone').value.trim();
+  const body = {
+    full_name: document.getElementById('edit-name').value.trim(),
+    phone: editPhoneNum ? editPhoneCode + ' ' + editPhoneNum : '',
+    nationality: document.getElementById('edit-nation').value.trim(),
+    passport_number: document.getElementById('edit-passport').value.trim(),
+    residence_expiry: document.getElementById('edit-expiry').value || null
+  };
+  btnLoad('submit-profile', true);
+  const { error } = await b_supabase.from('profiles').update(body).eq('id', STATE.user.id);
+  btnLoad('submit-profile', false);
+  if(!error) {
+    Object.assign(STATE.profile, body);
+    closeModal('profile-modal');
+    showToast(t('profileSuccess'),'success');
+    loadProfile();
+    document.getElementById('sidebar-name').textContent = body.full_name;
+    document.getElementById('sidebar-av').textContent = body.full_name.charAt(0).toUpperCase();
+    document.getElementById('welcome-msg').textContent = t('welcome').replace('{name}', body.full_name.split(' ')[0]);
+  } else showToast(t('error'),'error');
+}
+
+// ===================== PAGINATION HELPER =====================
+function renderPagination(containerId, total, currentPage, onPageChange) {
+  const totalPages = Math.ceil(total / STATE.PAGE_SIZE);
+  const el = document.getElementById(containerId);
+  if(!el || totalPages <= 1) { if(el) el.innerHTML=''; return; }
+  let html = `<button class="page-btn" onclick="${onPageChange}(${currentPage-1})" ${currentPage===1?'disabled':''}>‹</button>`;
+  for(let i=1; i<=totalPages; i++) {
+    if(i===1 || i===totalPages || (i>=currentPage-1 && i<=currentPage+1)) {
+      html += `<button class="page-btn ${i===currentPage?'active':''}" onclick="${onPageChange}(${i})">${i}</button>`;
+    } else if(i===currentPage-2 || i===currentPage+2) {
+      html += `<span class="page-info">…</span>`;
+    }
+  }
+  html += `<button class="page-btn" onclick="${onPageChange}(${currentPage+1})" ${currentPage===totalPages?'disabled':''}>›</button>`;
+  html += `<span class="page-info">${currentPage}/${totalPages}</span>`;
+  el.innerHTML = html;
+}
+
+// ===================== ADMIN =====================
+async function loadAdminClients() {
+  const { data, count } = await b_supabase.from('profiles').select('*', { count:'exact' })
+    .eq('role','client').order('created_at', { ascending:false })
+    .range((STATE.clientsPage-1)*STATE.PAGE_SIZE, STATE.clientsPage*STATE.PAGE_SIZE-1);
+  const clients = data || [];
+  const locale = { ar:'ar-SA', tr:'tr-TR', fr:'fr-FR', en:'en-US' }[currentLang] || 'en-US';
+  document.getElementById('admin-clients-body').innerHTML = clients.length
+    ? clients.map(c => `<tr><td><b>${c.full_name||'—'}</b></td><td>${c.email||'—'}</td><td>${c.phone||'—'}</td><td>${c.nationality||'—'}</td><td>${new Date(c.created_at).toLocaleDateString(locale)}</td></tr>`).join('')
+    : `<tr><td colspan="5" class="empty-state"><p>${t('noClients')}</p></td></tr>`;
+  renderPagination('clients-pagination', count||0, STATE.clientsPage, 'gotoClientsPage');
+}
+function gotoClientsPage(p) { STATE.clientsPage = p; loadAdminClients(); }
+
+async function loadAdminRequests() {
+  const { data, count } = await b_supabase.from('requests').select('*', { count:'exact' })
+    .order('created_at', { ascending:false })
+    .range((STATE.requestsPage-1)*STATE.PAGE_SIZE, STATE.requestsPage*STATE.PAGE_SIZE-1);
+  const reqs = data || [];
+  const typeMap = { residence:t('renewRes'), university:t('uniAdmit'), visa:t('visaServ'), other:t('other') };
+  const statusMap = { pending:'⏳ '+t('pending'), in_progress:'🔄 '+t('inProgress'), review:'👁 '+t('review'), done:'✅ '+t('done'), cancelled:'❌ '+t('cancelled') };
+  document.getElementById('admin-req-body').innerHTML = reqs.length
+    ? reqs.map(r => `<tr><td>${r.client_id.slice(0,8)}...</td><td>${typeMap[r.type]||r.type}</td><td>${r.title}</td><td><span class="status-badge ${getStatusClass(r.status)}">${statusMap[r.status]||r.status}</span></td><td>${r.progress||0}%</td><td><button class="btn-sm btn-blue" onclick="openUpdateReq('${r.id}','${r.status}',${r.progress||0},'${(r.notes||'').replace(/'/g,"\\'")}')">✏️</button></td></tr>`).join('')
+    : `<tr><td colspan="6" class="empty-state"><p>${t('noRequests')}</p></td></tr>`;
+  renderPagination('requests-pagination', count||0, STATE.requestsPage, 'gotoRequestsPage');
+}
+function gotoRequestsPage(p) { STATE.requestsPage = p; loadAdminRequests(); }
+
+function getStatusClass(s) {
+  return { pending:'s-pending', in_progress:'s-progress', review:'s-review', done:'s-done', cancelled:'s-cancelled' }[s]||'s-pending';
+}
+
+function openUpdateReq(id, status, progress, notes) {
+  document.getElementById('edit-req-id').value = id;
+  document.getElementById('edit-req-status').value = status;
+  document.getElementById('edit-req-progress').value = progress;
+  document.getElementById('edit-req-notes').value = notes;
+  openModal('update-req-modal');
+}
+
+async function updateRequest() {
+  const id = document.getElementById('edit-req-id').value;
+  const body = {
+    status: document.getElementById('edit-req-status').value,
+    progress: parseInt(document.getElementById('edit-req-progress').value)||0,
+    notes: document.getElementById('edit-req-notes').value,
+    updated_at: new Date().toISOString()
+  };
+  btnLoad('submit-update-req', true);
+  const { error } = await b_supabase.from('requests').update(body).eq('id', id);
+  btnLoad('submit-update-req', false);
+  if(!error) { closeModal('update-req-modal'); showToast(t('reqUpdated'),'success'); loadAdminRequests(); }
+  else showToast(t('error'),'error');
+}
+
+async function loadAdminInvoices() {
+  const { data, count } = await b_supabase.from('invoices').select('*', { count:'exact' })
+    .order('created_at', { ascending:false })
+    .range((STATE.invoicesPage-1)*STATE.PAGE_SIZE, STATE.invoicesPage*STATE.PAGE_SIZE-1);
+  const invs = data || [];
+  const locale = { ar:'ar-SA', tr:'tr-TR', fr:'fr-FR', en:'en-US' }[currentLang] || 'en-US';
+  const sMap = { unpaid:['s-pending',t('unpaidStatus')], paid:['s-done',t('paidStatus')], overdue:['s-review',t('overdueStatus')] };
+  document.getElementById('admin-inv-body').innerHTML = invs.length
+    ? invs.map(i => { const [sc,sl] = sMap[i.status]||['s-pending','—']; return `<tr><td>${i.client_id.slice(0,8)}...</td><td>${i.title}</td><td><b>${i.amount} ${i.currency}</b></td><td><span class="status-badge ${sc}">${sl}</span></td><td>${i.due_date?new Date(i.due_date).toLocaleDateString(locale):'—'}</td><td>${i.status==='unpaid'?`<button class="btn-sm btn-green" onclick="markPaid('${i.id}')">${t('confirmPay')}</button>`:''}</td></tr>`; }).join('')
+    : `<tr><td colspan="6" class="empty-state"><p>${t('noInvoices')}</p></td></tr>`;
+  renderPagination('invoices-pagination', count||0, STATE.invoicesPage, 'gotoInvoicesPage');
+}
+function gotoInvoicesPage(p) { STATE.invoicesPage = p; loadAdminInvoices(); }
+
+async function createInvoice() {
+  const body = {
+    client_id: document.getElementById('inv-client-id').value.trim(),
+    title: document.getElementById('inv-title').value.trim(),
+    amount: parseFloat(document.getElementById('inv-amount').value),
+    currency: document.getElementById('inv-currency').value,
+    due_date: document.getElementById('inv-due').value || null,
+    status: 'unpaid'
+  };
+  if(!body.client_id||!body.title||!body.amount) { showToast(t('fillFields'),'error'); return; }
+  btnLoad('submit-admin-inv', true);
+  const { error } = await b_supabase.from('invoices').insert(body);
+  btnLoad('submit-admin-inv', false);
+  if(!error) { closeModal('admin-inv-modal'); showToast(t('invCreated'),'success'); loadAdminInvoices(); }
+  else showToast(t('error'),'error');
+}
+
+async function markPaid(id) {
+  const { error } = await b_supabase.from('invoices').update({ status:'paid', paid_at: new Date().toISOString() }).eq('id', id);
+  if(!error) { showToast(t('payConfirmed'),'success'); loadAdminInvoices(); loadDashboard(); }
+}
+
+// ===================== NAVIGATION =====================
+const pageLoaders = {
+  dashboard: loadDashboard,
+  requests: loadRequests,
+  documents: loadDocuments,
+  invoices: loadInvoices,
+  profile: loadProfile,
+  'admin-clients': loadAdminClients,
+  'admin-requests': loadAdminRequests,
+  'admin-invoices': loadAdminInvoices
+};
+
+const pageTitles = {
+  dashboard:'لوحة التحكم', requests:'طلباتي', documents:'وثائقي',
+  invoices:'الفواتير', profile:'ملفي الشخصي',
+  'admin-clients':'إدارة العملاء', 'admin-requests':'إدارة الطلبات', 'admin-invoices':'إدارة الفواتير'
+};
+
+function goPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => {
+    if(n.textContent.trim().includes(pageTitles[name]?.slice(0,4))) n.classList.add('active');
+  });
+  document.getElementById('topbar-title').textContent = pageTitles[name] || '';
+  if(pageLoaders[name]) pageLoaders[name]();
+}
+
+// ===================== MODAL =====================
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if(e.target === m) m.classList.remove('open'); });
+});
+
+// ===================== TOAST =====================
+function showToast(msg, type='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast show ' + type;
+  setTimeout(() => t.className = 'toast', 3000);
+}
+
+// ===================== LANGUAGE =====================
+function safePH(id, txt) { const el = document.getElementById(id); if(el) el.placeholder = txt; }
+const LANGS = {
+  ar: {
+    dir: 'rtl', label: 'العربية',
+    // Auth
+    login: 'تسجيل الدخول', register: 'حساب جديد',
+    emailLabel: 'البريد الإلكتروني', passLabel: 'كلمة المرور',
+    nameLabel: 'الاسم الكامل', phoneLabel: 'رقم الهاتف',
+    nationLabel: 'الجنسية', loginBtn: 'تسجيل الدخول', registerBtn: 'إنشاء الحساب',
+    // Nav
+    dashboard: 'لوحة التحكم', requests: 'طلباتي', documents: 'وثائقي',
+    invoices: 'الفواتير', profile: 'ملفي الشخصي',
+    adminClients: 'العملاء', adminRequests: 'إدارة الطلبات', adminInvoices: 'الفواتير',
+    logout: 'تسجيل الخروج', admin: 'الإدارة', mainMenu: 'الرئيسية', account: 'الحساب',
+    // Dashboard
+    totalReqs: 'إجمالي الطلبات', activeReqs: 'طلبات جارية', doneReqs: 'مكتملة', unpaidInv: 'فواتير غير مسددة',
+    newReq: '+ تقديم طلب جديد', bannerSub: 'تابع طلباتك ووثائقك وفواتيرك من مكان واحد',
+    renewRes: 'تجديد الإقامة', uniAdmit: 'القبول الجامعي', visaServ: 'خدمات التأشيرة', uploadDoc: 'رفع وثيقة',
+    latestReqs: 'آخر الطلبات', viewAll: 'عرض الكل ←',
+    // Status
+    pending: 'في الانتظار', inProgress: 'قيد المعالجة', review: 'مراجعة', done: 'مكتمل', cancelled: 'ملغي',
+    // Modals
+    newReqTitle: '📋 تقديم طلب جديد', serviceType: 'نوع الخدمة',
+    reqTitle: 'عنوان الطلب', reqNotes: 'ملاحظات إضافية',
+    cancel: 'إلغاء', submit: 'تقديم الطلب',
+    uploadDocTitle: '📤 رفع وثيقة جديدة', docName: 'اسم الوثيقة', docType: 'نوع الوثيقة',
+    expiryDate: 'تاريخ الانتهاء (اختياري)', uploadFile: 'رفع الملف', uploadBtn: 'رفع الوثيقة',
+    editProfile: '✏️ تعديل البيانات الشخصية', fullName: 'الاسم الكامل',
+    nationality: 'الجنسية', passport: 'رقم الجواز', residenceExpiry: 'تاريخ انتهاء الإقامة', saveBtn: 'حفظ التغييرات',
+    // Profile page
+    personalData: 'البيانات الشخصية', editBtn: '✏️ تعديل',
+    verifiedClient: '✓ عميل موثّق', adminRole: '⚡ مسؤول النظام',
+    // Empty
+    noRequests: 'لا توجد طلبات بعد. قدّم طلبك الأول الآن!', noDocs: 'لا توجد وثائق مرفوعة', noInvoices: 'لا توجد فواتير',
+    // Toast
+    reqSuccess: 'تم تقديم الطلب بنجاح ✅', docSuccess: 'تم رفع الوثيقة بنجاح ✅', profileSuccess: 'تم حفظ البيانات بنجاح ✅', error: 'حدث خطأ، حاول مرة أخرى',
+    fillFields: 'يرجى تعبئة جميع الحقول المطلوبة', enterTitle: 'يرجى إدخال عنوان الطلب', enterDocName: 'يرجى إدخال اسم الوثيقة',
+    passShort: 'كلمة المرور يجب أن تكون 6 أحرف على الأقل', checkEmail: 'تم الإنشاء! تحقق من بريدك الإلكتروني',
+    sessionExpired: 'انتهت الجلسة، يرجى تسجيل الدخول مجدداً',
+    welcome: 'مرحباً، {name} 👋', submitted: 'تقديم', progressLabel: 'التقدم',
+    expiry: 'ينتهي', noExpiry: 'بدون تاريخ انتهاء', expired: 'منتهية الصلاحية', expiresIn: 'تنتهي خلال {days} يوم',
+    dueDate: 'الاستحقاق', unpaidStatus: 'غير مسدد', paidStatus: 'مسدد', overdueStatus: 'متأخر',
+    noClients: 'لا توجد عملاء', roleLabel: 'الدور', clientRole: 'عميل', other: 'أخرى',
+    reqUpdated: 'تم تحديث الطلب ✅', invCreated: 'تم إنشاء الفاتورة ✅', confirmPay: 'تأكيد الدفع', payConfirmed: 'تم تأكيد الدفع ✅',
+    chooseFile: 'اختر ملف PDF أو صورة',
+    noNotifs: 'لا توجد إشعارات', passMatch: 'كلمات المرور متطابقة', passNoMatch: 'كلمات المرور غير متطابقة',
+    enterEmail: 'يرجى إدخال البريد الإلكتروني', resetSent: 'تم إرسال رابط الاستعادة، تحقق من بريدك ✅', viewFile: 'عرض الملف',
+    confirmPassLabel: 'تأكيد كلمة المرور', resetPassTitle: '🔑 استعادة كلمة المرور',
+    portalSub: 'بوابة العملاء الرسمية', forgotQ: '🔑 نسيت كلمة المرور؟',
+    // Placeholders
+    phLoginEmail: 'أدخل بريدك الإلكتروني', phLoginPass: 'أدخل كلمة المرور',
+    phRegName: 'أحمد محمد', phRegEmail: 'example@email.com',
+    phRegPhone: '501 000 00 00', phRegNation: 'مصري / سوري / ...',
+    phRegPass: '8 أحرف على الأقل', phRegPassConfirm: 'أعد كتابة كلمة المرور',
+  },
+  en: {
+    dir: 'ltr', label: 'English',
+    login: 'Login', register: 'New Account',
+    emailLabel: 'Email Address', passLabel: 'Password',
+    nameLabel: 'Full Name', phoneLabel: 'Phone Number',
+    nationLabel: 'Nationality', loginBtn: 'Login', registerBtn: 'Create Account',
+    dashboard: 'Dashboard', requests: 'My Requests', documents: 'My Documents',
+    invoices: 'Invoices', profile: 'My Profile',
+    adminClients: 'Clients', adminRequests: 'Manage Requests', adminInvoices: 'Invoices',
+    logout: 'Logout', admin: 'Administration', mainMenu: 'Main', account: 'Account',
+    totalReqs: 'Total Requests', activeReqs: 'Active Requests', doneReqs: 'Completed', unpaidInv: 'Unpaid Invoices',
+    newReq: '+ New Request', bannerSub: 'Track your requests, documents and invoices in one place',
+    renewRes: 'Residence Renewal', uniAdmit: 'University Admission', visaServ: 'Visa Services', uploadDoc: 'Upload Document',
+    latestReqs: 'Latest Requests', viewAll: 'View All →',
+    pending: 'Pending', inProgress: 'In Progress', review: 'Under Review', done: 'Completed', cancelled: 'Cancelled',
+    newReqTitle: '📋 New Request', serviceType: 'Service Type',
+    reqTitle: 'Request Title', reqNotes: 'Additional Notes',
+    cancel: 'Cancel', submit: 'Submit Request',
+    uploadDocTitle: '📤 Upload Document', docName: 'Document Name', docType: 'Document Type',
+    expiryDate: 'Expiry Date (optional)', uploadFile: 'Upload File', uploadBtn: 'Upload Document',
+    editProfile: '✏️ Edit Profile', fullName: 'Full Name',
+    nationality: 'Nationality', passport: 'Passport Number', residenceExpiry: 'Residence Expiry', saveBtn: 'Save Changes',
+    personalData: 'Personal Information', editBtn: '✏️ Edit',
+    verifiedClient: '✓ Verified Client', adminRole: '⚡ System Admin',
+    noRequests: 'No requests yet. Submit your first one!', noDocs: 'No documents uploaded', noInvoices: 'No invoices found',
+    reqSuccess: 'Request submitted successfully ✅', docSuccess: 'Document uploaded successfully ✅', profileSuccess: 'Profile saved successfully ✅', error: 'An error occurred, please try again',
+    fillFields: 'Please fill all required fields', enterTitle: 'Please enter a request title', enterDocName: 'Please enter a document name',
+    passShort: 'Password must be at least 6 characters', checkEmail: 'Account created! Check your email',
+    sessionExpired: 'Session expired. Please login again.',
+    welcome: 'Hello, {name} 👋', submitted: 'Submitted', progressLabel: 'Progress',
+    expiry: 'Expires', noExpiry: 'No expiry date', expired: 'Expired', expiresIn: 'Expires in {days} days',
+    dueDate: 'Due date', unpaidStatus: 'Unpaid', paidStatus: 'Paid', overdueStatus: 'Overdue',
+    noClients: 'No clients found', roleLabel: 'Role', clientRole: 'Client', other: 'Other',
+    reqUpdated: 'Request updated ✅', invCreated: 'Invoice created ✅', confirmPay: 'Confirm Payment', payConfirmed: 'Payment confirmed ✅',
+    chooseFile: 'Choose a PDF or image file',
+    noNotifs: 'No notifications', passMatch: 'Passwords match', passNoMatch: 'Passwords do not match',
+    enterEmail: 'Please enter your email', resetSent: 'Reset link sent! Check your email ✅', viewFile: 'View File',
+    confirmPassLabel: 'Confirm Password', resetPassTitle: '🔑 Reset Password',
+    portalSub: 'Official Client Portal', forgotQ: '🔑 Forgot your password?',
+    // Placeholders
+    phLoginEmail: 'Enter your email address', phLoginPass: 'Enter your password',
+    phRegName: 'James Anderson', phRegEmail: 'example@email.com',
+    phRegPhone: '501 000 00 00', phRegNation: 'Egyptian / Syrian / ...',
+    phRegPass: 'At least 8 characters', phRegPassConfirm: 'Re-enter your password',
+  },
+  tr: {
+    dir: 'ltr', label: 'Türkçe',
+    login: 'Giriş Yap', register: 'Yeni Hesap',
+    emailLabel: 'E-posta Adresi', passLabel: 'Şifre',
+    nameLabel: 'Ad Soyad', phoneLabel: 'Telefon Numarası',
+    nationLabel: 'Uyruk', loginBtn: 'Giriş Yap', registerBtn: 'Hesap Oluştur',
+    dashboard: 'Kontrol Paneli', requests: 'Taleplerim', documents: 'Belgelerim',
+    invoices: 'Faturalar', profile: 'Profilim',
+    adminClients: 'Müşteriler', adminRequests: 'Talep Yönetimi', adminInvoices: 'Faturalar',
+    logout: 'Çıkış Yap', admin: 'Yönetim', mainMenu: 'Ana Menü', account: 'Hesap',
+    totalReqs: 'Toplam Talepler', activeReqs: 'Aktif Talepler', doneReqs: 'Tamamlanan', unpaidInv: 'Ödenmemiş Faturalar',
+    newReq: '+ Yeni Talep', bannerSub: 'Taleplerinizi, belgelerinizi ve faturalarınızı tek yerden takip edin',
+    renewRes: 'İkamet Yenileme', uniAdmit: 'Üniversite Başvurusu', visaServ: 'Vize Hizmetleri', uploadDoc: 'Belge Yükle',
+    latestReqs: 'Son Talepler', viewAll: 'Tümünü Gör →',
+    pending: 'Beklemede', inProgress: 'İşlemde', review: 'İnceleniyor', done: 'Tamamlandı', cancelled: 'İptal Edildi',
+    newReqTitle: '📋 Yeni Talep', serviceType: 'Hizmet Türü',
+    reqTitle: 'Talep Başlığı', reqNotes: 'Ek Notlar',
+    cancel: 'İptal', submit: 'Talep Gönder',
+    uploadDocTitle: '📤 Belge Yükle', docName: 'Belge Adı', docType: 'Belge Türü',
+    expiryDate: 'Son Kullanma Tarihi (isteğe bağlı)', uploadFile: 'Dosya Yükle', uploadBtn: 'Belgeyi Yükle',
+    editProfile: '✏️ Profili Düzenle', fullName: 'Ad Soyad',
+    nationality: 'Uyruk', passport: 'Pasaport Numarası', residenceExpiry: 'İkamet Son Tarihi', saveBtn: 'Değişiklikleri Kaydet',
+    personalData: 'Kişisel Bilgiler', editBtn: '✏️ Düzenle',
+    verifiedClient: '✓ Doğrulanmış Müşteri', adminRole: '⚡ Sistem Yöneticisi',
+    noRequests: 'Henüz talep yok.', noDocs: 'Yüklenmiş belge yok', noInvoices: 'Fatura bulunamadı',
+    reqSuccess: 'Talep başarıyla gönderildi ✅', docSuccess: 'Belge başarıyla yüklendi ✅', profileSuccess: 'Profil başarıyla kaydedildi ✅', error: 'Bir hata oluştu, tekrar deneyin',
+    fillFields: 'Lütfen tüm gerekli alanları doldurun', enterTitle: 'Lütfen bir talep başlığı girin', enterDocName: 'Lütfen bir belge adı girin',
+    passShort: 'Şifre en az 6 karakter olmalı', checkEmail: 'Hesap oluşturuldu! E-postanızı kontrol edin',
+    sessionExpired: 'Oturum süresi doldu. Lütfen tekrar giriş yapın.',
+    welcome: 'Merhaba, {name} 👋', submitted: 'Gönderildi', progressLabel: 'İlerleme',
+    expiry: 'Son', noExpiry: 'Son kullanma tarihi yok', expired: 'Süresi dolmuş', expiresIn: '{days} gün içinde sona eriyor',
+    dueDate: 'Vade tarihi', unpaidStatus: 'Ödenmedi', paidStatus: 'Ödendi', overdueStatus: 'Gecikmiş',
+    noClients: 'Müşteri bulunamadı', roleLabel: 'Rol', clientRole: 'Müşteri', other: 'Diğer',
+    reqUpdated: 'Talep güncellendi ✅', invCreated: 'Fatura oluşturuldu ✅', confirmPay: 'Ödemeyi Onayla', payConfirmed: 'Ödeme onaylandı ✅',
+    chooseFile: 'PDF veya resim dosyası seçin',
+    noNotifs: 'Bildirim yok', passMatch: 'Şifreler eşleşiyor', passNoMatch: 'Şifreler eşleşmiyor',
+    enterEmail: 'Lütfen e-posta adresinizi girin', resetSent: 'Sıfırlama bağlantısı gönderildi ✅', viewFile: 'Dosyayı Görüntüle',
+    confirmPassLabel: 'Şifreyi Onayla', resetPassTitle: '🔑 Şifre Sıfırla',
+    portalSub: 'Resmi Müşteri Portalı', forgotQ: '🔑 Şifremi unuttum?',
+    // Placeholders
+    phLoginEmail: 'E-posta adresinizi girin', phLoginPass: 'Şifrenizi girin',
+    phRegName: 'Ahmet Yılmaz', phRegEmail: 'ornek@email.com',
+    phRegPhone: '501 000 00 00', phRegNation: 'Mısırlı / Suriyeli / ...',
+    phRegPass: 'En az 8 karakter', phRegPassConfirm: 'Şifreyi tekrar girin',
+  },
+  fr: {
+    dir: 'ltr', label: 'Français',
+    login: 'Connexion', register: 'Nouveau Compte',
+    emailLabel: 'Adresse e-mail', passLabel: 'Mot de passe',
+    nameLabel: 'Nom complet', phoneLabel: 'Numéro de téléphone',
+    nationLabel: 'Nationalité', loginBtn: 'Se connecter', registerBtn: 'Créer un compte',
+    dashboard: 'Tableau de bord', requests: 'Mes demandes', documents: 'Mes documents',
+    invoices: 'Factures', profile: 'Mon profil',
+    adminClients: 'Clients', adminRequests: 'Gérer les demandes', adminInvoices: 'Factures',
+    logout: 'Déconnexion', admin: 'Administration', mainMenu: 'Menu principal', account: 'Compte',
+    totalReqs: 'Total demandes', activeReqs: 'Demandes actives', doneReqs: 'Terminées', unpaidInv: 'Factures impayées',
+    newReq: '+ Nouvelle demande', bannerSub: 'Suivez vos demandes, documents et factures en un seul endroit',
+    renewRes: 'Renouvellement résidence', uniAdmit: 'Admission universitaire', visaServ: 'Services visa', uploadDoc: 'Télécharger document',
+    latestReqs: 'Dernières demandes', viewAll: 'Voir tout →',
+    pending: 'En attente', inProgress: 'En cours', review: 'En révision', done: 'Terminé', cancelled: 'Annulé',
+    newReqTitle: '📋 Nouvelle demande', serviceType: 'Type de service',
+    reqTitle: 'Titre de la demande', reqNotes: 'Notes supplémentaires',
+    cancel: 'Annuler', submit: 'Soumettre la demande',
+    uploadDocTitle: '📤 Télécharger un document', docName: 'Nom du document', docType: 'Type de document',
+    expiryDate: "Date d'expiration (optionnel)", uploadFile: 'Télécharger le fichier', uploadBtn: 'Télécharger le document',
+    editProfile: '✏️ Modifier le profil', fullName: 'Nom complet',
+    nationality: 'Nationalité', passport: 'Numéro de passeport', residenceExpiry: 'Expiration résidence', saveBtn: 'Sauvegarder',
+    personalData: 'Informations personnelles', editBtn: '✏️ Modifier',
+    verifiedClient: '✓ Client vérifié', adminRole: '⚡ Administrateur',
+    noRequests: 'Aucune demande pour le moment.', noDocs: 'Aucun document téléchargé', noInvoices: 'Aucune facture trouvée',
+    reqSuccess: 'Demande soumise avec succès ✅', docSuccess: 'Document téléchargé avec succès ✅', profileSuccess: 'Profil sauvegardé ✅', error: 'Une erreur est survenue',
+    fillFields: 'Veuillez remplir tous les champs requis', enterTitle: 'Veuillez entrer un titre', enterDocName: 'Veuillez entrer un nom de document',
+    passShort: 'Le mot de passe doit contenir au moins 6 caractères', checkEmail: 'Compte créé ! Vérifiez votre e-mail',
+    sessionExpired: 'Session expirée. Veuillez vous reconnecter.',
+    welcome: 'Bonjour, {name} 👋', submitted: 'Soumis', progressLabel: 'Progression',
+    expiry: 'Expire', noExpiry: 'Pas de date d\'expiration', expired: 'Expiré', expiresIn: 'Expire dans {days} jours',
+    dueDate: 'Date d\'échéance', unpaidStatus: 'Non payé', paidStatus: 'Payé', overdueStatus: 'En retard',
+    noClients: 'Aucun client trouvé', roleLabel: 'Rôle', clientRole: 'Client', other: 'Autre',
+    reqUpdated: 'Demande mise à jour ✅', invCreated: 'Facture créée ✅', confirmPay: 'Confirmer le paiement', payConfirmed: 'Paiement confirmé ✅',
+    chooseFile: 'Choisir un fichier PDF ou image',
+    noNotifs: 'Aucune notification', passMatch: 'Les mots de passe correspondent', passNoMatch: 'Les mots de passe ne correspondent pas',
+    enterEmail: 'Veuillez entrer votre e-mail', resetSent: 'Lien de réinitialisation envoyé ✅', viewFile: 'Voir le fichier',
+    confirmPassLabel: 'Confirmer le mot de passe', resetPassTitle: '🔑 Réinitialiser',
+    portalSub: 'Portail client officiel', forgotQ: '🔑 Mot de passe oublié ?',
+    // Placeholders
+    phLoginEmail: 'Entrez votre adresse e-mail', phLoginPass: 'Entrez votre mot de passe',
+    phRegName: 'Jean Dupont', phRegEmail: 'exemple@email.com',
+    phRegPhone: '501 000 00 00', phRegNation: 'Égyptien / Syrien / ...',
+    phRegPass: 'Au moins 8 caractères', phRegPassConfirm: 'Ressaisissez votre mot de passe',
+  }
+};
+
+let currentLang = localStorage.getItem('lang') || 'ar';
+
+function t(key) { return LANGS[currentLang]?.[key] || LANGS['ar'][key] || key; }
+
+function applyLang() {
+  const lang = LANGS[currentLang];
+  document.documentElement.dir = lang.dir;
+  document.documentElement.lang = currentLang;
+  // Update both lang labels (topbar + auth screen)
+  const ll = document.getElementById('lang-label');
+  if(ll) ll.textContent = lang.label;
+  const lla = document.getElementById('lang-label-auth');
+  if(lla) lla.textContent = lang.label;
+
+  // Update active option in both dropdowns
+  document.querySelectorAll('.lang-option').forEach(o => o.classList.remove('active'));
+  document.querySelectorAll('.lang-option').forEach(o => {
+    if(o.getAttribute('onclick').includes("'" + currentLang + "'")) o.classList.add('active');
+  });
+
+  // Auth
+  safeText('auth-portal-sub', t('portalSub'));
+  safeText('forgot-link-txt', t('forgotQ'));
+  safeText('login-tab-btn', t('login'));
+  safeText('register-tab-btn', t('register'));
+  safeLabel('lbl-login-email', t('emailLabel'));
+  safeLabel('lbl-login-pass', t('passLabel'));
+  safeLabel('lbl-reg-name', t('nameLabel'));
+  safeLabel('lbl-reg-email', t('emailLabel'));
+  safeLabel('lbl-reg-phone', t('phoneLabel'));
+  safeLabel('lbl-reg-nation', t('nationLabel'));
+  safeLabel('lbl-reg-pass', t('passLabel'));
+  safeText('btn-login', t('loginBtn'));
+  safeText('btn-register', t('registerBtn'));
+
+  // Auth placeholders
+  safePH('login-email', t('phLoginEmail'));
+  safePH('login-pass', t('phLoginPass'));
+  safePH('reg-name', t('phRegName'));
+  safePH('reg-email', t('phRegEmail'));
+  safePH('reg-phone', t('phRegPhone'));
+  safePH('reg-nation', t('phRegNation'));
+  safePH('reg-pass', t('phRegPass'));
+  safePH('reg-pass-confirm', t('phRegPassConfirm'));
+
+  // Nav
+  safeText('nav-dashboard', t('dashboard'));
+  safeText('nav-requests', t('requests'));
+  safeText('nav-documents', t('documents'));
+  safeText('nav-invoices', t('invoices'));
+  safeText('nav-profile', t('profile'));
+  safeText('nav-admin-clients', t('adminClients'));
+  safeText('nav-admin-requests', t('adminRequests'));
+  safeText('nav-admin-invoices', t('adminInvoices'));
+  safeText('nav-logout', t('logout'));
+  safeText('nav-lbl-main', t('mainMenu'));
+  safeText('nav-lbl-account', t('account'));
+  safeText('nav-lbl-admin', t('admin'));
+  safeText('sidebar-portal-label', currentLang === 'ar' ? 'بوابة العملاء' : currentLang === 'tr' ? 'Müşteri Portalı' : currentLang === 'fr' ? 'Portail Client' : 'Client Portal');
+
+  // Dashboard
+  safeText('stat-lbl-total', t('totalReqs'));
+  safeText('stat-lbl-active', t('activeReqs'));
+  safeText('stat-lbl-done', t('doneReqs'));
+  safeText('stat-lbl-unpaid', t('unpaidInv'));
+  safeText('banner-sub', t('bannerSub'));
+  safeText('banner-btn-txt', t('newReq'));
+  safeText('quick-renew', t('renewRes'));
+  safeText('quick-uni', t('uniAdmit'));
+  safeText('quick-visa', t('visaServ'));
+  safeText('quick-upload', t('uploadDoc'));
+  safeText('latest-reqs-title', t('latestReqs'));
+  safeText('view-all-btn', t('viewAll'));
+
+  // Modals
+  safeText('modal-req-title', t('newReqTitle'));
+  safeLabel('lbl-req-type', t('serviceType'));
+  safeLabel('lbl-req-title', t('reqTitle'));
+  safeLabel('lbl-req-notes', t('reqNotes'));
+  safeText('cancel-req', t('cancel')); safeText('submit-req', t('submit'));
+  safeText('modal-doc-title', t('uploadDocTitle'));
+  safeLabel('lbl-doc-name', t('docName')); safeLabel('lbl-doc-type', t('docType'));
+  safeLabel('lbl-doc-expiry', t('expiryDate')); safeLabel('lbl-doc-file', t('uploadFile'));
+  safeText('cancel-doc', t('cancel')); safeText('submit-doc', t('uploadBtn'));
+  safeText('modal-profile-title', t('editProfile'));
+  safeLabel('lbl-edit-name', t('fullName')); safeLabel('lbl-edit-phone', t('phoneLabel'));
+  safeLabel('lbl-edit-nation', t('nationality')); safeLabel('lbl-edit-passport', t('passport'));
+  safeLabel('lbl-edit-expiry', t('residenceExpiry'));
+  safeText('cancel-profile', t('cancel')); safeText('submit-profile', t('saveBtn'));
+
+  // Topbar chip
+  if(STATE.profile) {
+    const chip = document.getElementById('role-chip');
+    if(chip) chip.textContent = STATE.profile.role === 'admin' ? t('adminRole') : t('verifiedClient');
+  }
+
+  // Page titles map update
+  pageTitles.dashboard = t('dashboard');
+  pageTitles.requests = t('requests');
+  pageTitles.documents = t('documents');
+  pageTitles.invoices = t('invoices');
+  pageTitles.profile = t('profile');
+  pageTitles['admin-clients'] = t('adminClients');
+  pageTitles['admin-requests'] = t('adminRequests');
+  pageTitles['admin-invoices'] = t('adminInvoices');
+
+  // Update current page title
+  const activePage = document.querySelector('.page.active');
+  if(activePage) {
+    const pageId = activePage.id.replace('page-', '');
+    document.getElementById('topbar-title').textContent = pageTitles[pageId] || '';
+  }
+}
+
+function safeText(id, txt) { const el = document.getElementById(id); if(el) el.textContent = txt; }
+function safeLabel(id, txt) { const el = document.getElementById(id); if(el) el.textContent = txt; }
+
+function toggleLangDropdown() {
+  // Use auth dropdown when auth screen is visible, app dropdown otherwise
+  const authScreen = document.getElementById('auth-screen');
+  const isAuth = authScreen && authScreen.offsetParent !== null;
+  const dd = isAuth ? 'lang-dropdown-auth' : 'lang-dropdown';
+  document.getElementById(dd)?.classList.toggle('open');
+}
+document.addEventListener('click', e => {
+  if(!e.target.closest('.lang-switcher')) {
+    document.getElementById('lang-dropdown')?.classList.remove('open');
+    document.getElementById('lang-dropdown-auth')?.classList.remove('open');
+  }
+});
+
+function setLang(lang) {
+  currentLang = lang;
+  localStorage.setItem('lang', lang);
+  document.getElementById('lang-dropdown')?.classList.remove('open');
+  document.getElementById('lang-dropdown-auth')?.classList.remove('open');
+  applyLang();
+  showToast(LANGS[lang].label + ' ✓');
+}
+
+// ===================== INIT =====================
+(async () => {
+  applyLang();
+
+  // Listen for auth state changes (handles refresh, login, logout automatically)
+  b_supabase.auth.onAuthStateChange(async (event, session) => {
+    if(event === 'SIGNED_IN' && session) {
+      STATE.user = session.user;
+      if(!document.getElementById('app-screen').style.display || document.getElementById('app-screen').style.display === 'none') {
+        await loadApp();
+        applyLang();
+      }
+    } else if(event === 'SIGNED_OUT') {
+      STATE.user = null; STATE.profile = null;
+      document.getElementById('app-screen').style.display = 'none';
+      document.getElementById('auth-screen').style.display = 'flex';
+    } else if(event === 'TOKEN_REFRESHED') {
+      // Token auto-refreshed by Supabase JS — nothing needed
+    }
+  });
+
+  // Check existing session on load
+  const { data: { session } } = await b_supabase.auth.getSession();
+  if(session) {
+    STATE.user = session.user;
+    await loadApp();
+    applyLang();
+  } else {
+    document.getElementById('auth-screen').style.display = 'flex';
+  }
+})();
+</script>
+</body>
+</html>
